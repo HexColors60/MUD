@@ -39,274 +39,506 @@
 #include "defs.h"
 
 extern char *roomnames[11];
+extern char *notyet[BUF_SIZE];
+extern int mudport;
+extern char *mudserver[BUF_SIZE];
+extern int objectresettime;
+extern int databaseresettime;
+extern int userresettime;
+extern int configsavetime;
+extern int allowplayerkilling;
+extern int allownewaccounts;
+extern int monsterresettime;
+extern int banresettime;
+extern int pointsforwarrior;
+extern int pointsforhero;
+extern int pointsforchampion;
+extern int pointsforsuperhero;
+extern int pointsforenchanter;
+extern int pointsforsorceror;
+extern int pointsfornecromancer;
+extern int pointsforlegend;
+extern int pointsforwizard;
+extern char *mudnomem[BUF_SIZE];
+extern int databasebackup;
+
+int docommand(user *currentuser,char *s);
+int north_statement(user *currentuser,int tc,char *cb[BUF_SIZE][BUF_SIZE]);
+int south_statement(user *currentuser,int tc,char *cb[BUF_SIZE][BUF_SIZE]);
+int east_statement(user *currentuser,int tc,char *cb[BUF_SIZE][BUF_SIZE]);
+int west_statement(user *currentuser,int tc,char *cb[BUF_SIZE][BUF_SIZE]);
+int northwest_statement(user *currentuser,int tc,char *cb[BUF_SIZE][BUF_SIZE]);
+int southwest_statement(user *currentuser,int tc,char *cb[BUF_SIZE][BUF_SIZE]);
+int southeast_statement(user *currentuser,int tc,char *cb[BUF_SIZE][BUF_SIZE]);
+int northeast_statement(user *currentuser,int tc,char *cb[BUF_SIZE][BUF_SIZE]);
+int up_statement(user *currentuser,int tc,char *cb[BUF_SIZE][BUF_SIZE]);
+int down_statement(user *currentuser,int tc,char *cb[BUF_SIZE][BUF_SIZE]);
+int look_statement(user *currentuser,int tc,char *cb[BUF_SIZE][BUF_SIZE]);
+int who_statement(user *currentuser,int tc,char *cb[BUF_SIZE][BUF_SIZE]);
+int say_statement(user *currentuser,int tc,char *cb[BUF_SIZE][BUF_SIZE]);
+int whisper_statement(user *currentuser,int tc,char *cb[BUF_SIZE][BUF_SIZE]);
+int pose_statement(user *currentuser,int tc,char *cb[BUF_SIZE][BUF_SIZE]);
+int home_statement(user *currentuser,int tc,char *cb[BUF_SIZE][BUF_SIZE]);
+int quit_statement(user *currentuser,int tc,char *cb[BUF_SIZE][BUF_SIZE]);
+int version_statement(user *currentuser,int tc,char *cb[BUF_SIZE][BUF_SIZE]);
+int describe_statement(user *currentuser,int tc,char *cb[BUF_SIZE][BUF_SIZE]);
+int get_statement(user *currentuser,int tc,char *cb[BUF_SIZE][BUF_SIZE]);
+int drop_statement(user *currentuser,int tc,char *cb[BUF_SIZE][BUF_SIZE]);
+int help_statement(user *currentuser,int tc,char *cb[BUF_SIZE][BUF_SIZE]);
+int password_statement(user *currentuser,int tc,char *cb[BUF_SIZE][BUF_SIZE]);
+int spell_statement(user *currentuser,int tc,char *cb[BUF_SIZE][BUF_SIZE]);
+int fight_statement(user *currentuser,int tc,char *cb[BUF_SIZE][BUF_SIZE]);
+int score_statement(user *currentuser,int tc,char *cb[BUF_SIZE][BUF_SIZE]);
+int inv_statement(user *currentuser,int tc,char *cb[BUF_SIZE][BUF_SIZE]);
+int give_statement(user *currentuser,int tc,char *cb[BUF_SIZE][BUF_SIZE]);
+int xyzzy_statement(user *currentuser,int tc,char *cb[BUF_SIZE][BUF_SIZE]);
+int setrace_statement(user *currentuser,int tc,char *cb[BUF_SIZE][BUF_SIZE]);
+int set_statement(user *currentuser,int tc,char *cb[BUF_SIZE][BUF_SIZE]);
+int setgender_statement(user *currentuser,int tc,char *cb[BUF_SIZE][BUF_SIZE]);
+int sethome_statement(user *currentuser,int tc,char *cb[BUF_SIZE][BUF_SIZE]);
+int setgender_statement(user *currentuser,int tc,char *cb[BUF_SIZE][BUF_SIZE]);
+int setlevel_statement(user *currentuser,int tc,char *cb[BUF_SIZE][BUF_SIZE]);
+int setclass_statement(user *currentuser,int tc,char *cb[BUF_SIZE][BUF_SIZE]);
+int setxp_statement(user *currentuser,int tc,char *cb[BUF_SIZE][BUF_SIZE]);
+int setmp_statement(user *currentuser,int tc,char *cb[BUF_SIZE][BUF_SIZE]);
+int setsp_statement(user *currentuser,int tc,char *cb[BUF_SIZE][BUF_SIZE]);
+int banip_statement(user *currentuser,int tc,char *cb[BUF_SIZE][BUF_SIZE]);
+int unban_statement(user *currentuser,int tc,char *cb[BUF_SIZE][BUF_SIZE]);
+int ban_statement(user *currentuser,int tc,char *cb[BUF_SIZE][BUF_SIZE]);
+int kill_statement(user *currentuser,int tc,char *cb[BUF_SIZE][BUF_SIZE]);
+int create_statement(user *currentuser,int tc,char *cb[BUF_SIZE][BUF_SIZE]);
+int delete_statement(user *currentuser,int tc,char *cb[BUF_SIZE][BUF_SIZE]);
+int rename_statement(user *currentuser,int tc,char *cb[BUF_SIZE][BUF_SIZE]);
+int chown_statement(user *currentuser,int tc,char *cb[BUF_SIZE][BUF_SIZE]); 
+int chmod_statement(user *currentuser,int tc,char *cb[BUF_SIZE][BUF_SIZE]);
+int copy_statement(user *currentuser,int tc,char *cb[BUF_SIZE][BUF_SIZE]);
+int move_statement(user *currentuser,int tc,char *cb[BUF_SIZE][BUF_SIZE]);
+int dig_statement(user *currentuser,int tc,char *cb[BUF_SIZE][BUF_SIZE]);
+int force_statement(user *currentuser,int tc,char *cb[BUF_SIZE][BUF_SIZE]);
+int listban_statement(user *currentuser,int tc,char *cb[BUF_SIZE][BUF_SIZE]);
+int go_statement(user *currentuser,int tc,char *cb[BUF_SIZE][BUF_SIZE]);
+int wall_statement(user *currentuser,int tc,char *cb[BUF_SIZE][BUF_SIZE]);
+int take_statement(user *currentuser,int tc,char *cb[BUF_SIZE][BUF_SIZE]);
+int reload_statement(user *currentuser,int tc,char *cb[BUF_SIZE][BUF_SIZE]);
+int shutdown_statement(user *currentuser,int tc,char *cb[BUF_SIZE][BUF_SIZE]);
+int addclass_statement(user *currentuser,int tc,char *cb[BUF_SIZE][BUF_SIZE]);
+int addrace_statement(user *currentuser,int tc,char *cb[BUF_SIZE][BUF_SIZE]);
+int dropdead_statement(user *currentuser,int tc,char *cb[BUF_SIZE][BUF_SIZE]);
+int invisible_statement(user *currentuser,int tc,char *cb[BUF_SIZE][BUF_SIZE]);
+int visible_statement(user *currentuser,int tc,char *cb[BUF_SIZE][BUF_SIZE]);
+int gag_statement(user *currentuser,int tc,char *cb[BUF_SIZE][BUF_SIZE]);
+int ungag_statement(user *currentuser,int tc,char *cb[BUF_SIZE][BUF_SIZE]);
+int setexit_statement(user *currentuser,int tc,char *cb[BUF_SIZE][BUF_SIZE]);
 
 char *bs="Bad syntax\r\n";
 char *idontunderstandthat="I don't understand that\r\n";
 char *noparam="Missing parameters\r\n";
 char *nomsg="Missing arguments";
 
+struct {
+ user *user;
+ char *statement;
+ unsigned int (*call_statement)(user *,int,void *);		/* function pointer */
+} statements[] = { {  NULL,"NORTH",&north_statement },\
+		   {  NULL,"N",&north_statement },\
+		   {  NULL,"NORTHWEST",&northwest_statement },\
+		   {  NULL,"NW",&northwest_statement },\
+		   {  NULL,"SOUTH",&south_statement },\
+		   {  NULL,"S",&south_statement },\
+		   {  NULL,"SOUTHEAST",&southeast_statement },\
+		   {  NULL,"SE",&southeast_statement },\
+		   {  NULL,"EAST",&east_statement },\
+		   {  NULL,"E",&east_statement },\
+		   {  NULL,"WEST",&west_statement },\
+		   {  NULL,"W",&west_statement },\
+		   {  NULL,"SOUTHWEST",&southwest_statement },\
+		   {  NULL,"SW",&southwest_statement },\
+		   {  NULL,"UP",&up_statement },\
+		   {  NULL,"U",&up_statement },\
+		   {  NULL,"DOWN",&down_statement },\
+		   {  NULL,"D",&down_statement },\
+		   {  NULL,"LOOK",&look_statement },\
+		   {  NULL,"WHO",&who_statement },\
+		   {  NULL,"SAY",&say_statement },\
+		   {  NULL,"WHISPER",&whisper_statement },\
+		   {  NULL,":",&pose_statement },\
+		   {  NULL,"POSE",&pose_statement },\
+		   {  NULL,"HOME",&home_statement },\
+		   {  NULL,"QUIT",&quit_statement },\
+		   {  NULL,"VERSION",&version_statement },\
+		   {  NULL,"DESCRIBE",&describe_statement },\
+		   {  NULL,"GET",&get_statement },\
+		   {  NULL,"DROP",&drop_statement },\
+		   {  NULL,"HELP",&help_statement },\
+		   {  NULL,"PASSWORD",&password_statement },\
+		   {  NULL,"SPELL",&spell_statement },\
+		   {  NULL,"F",&fight_statement },\
+		   {  NULL,"SCORE",&score_statement },\
+		   {  NULL,"INV",&inv_statement },\
+		   {  NULL,"GIVE",give_statement },\
+		   {  NULL,"XYZZY",&xyzzy_statement },\
+		   {  NULL,"SETRACE",&setrace_statement },\
+		   {  NULL,"SET",&set_statement },\
+		   {  NULL,"SETHOME",&sethome_statement },\
+		   {  NULL,"SETGENDER",&setgender_statement },\
+		   {  NULL,"SETLEVEL",&setlevel_statement },\
+		   {  NULL,"SETCLASSS",&setclass_statement },\
+		   {  NULL,"SETXP",&setxp_statement },\
+		   {  NULL,"SETMP",&setmp_statement },\
+		   {  NULL,"SETSP",&setsp_statement },\
+		   {  NULL,"BANIP",&banip_statement },\
+		   {  NULL,"UNBAN",&unban_statement },\
+		   {  NULL,"BAN",&ban_statement },\
+		   {  NULL,"KILL",&kill_statement },\
+		   {  NULL,"CREATE",&create_statement },\
+		   {  NULL,"DELETE",&delete_statement },\
+		   {  NULL,"RENAME",&rename_statement },\
+		   {  NULL,"CHOWN",&chown_statement },\
+		   {  NULL,"CHMOD",&chmod_statement },\
+		   {  NULL,"COPY",&copy_statement },\
+		   {  NULL,"MOVE",&move_statement },\
+		   {  NULL,"DIG",&dig_statement },\
+		   {  NULL,"FORCE",&north_statement },\
+		   {  NULL,"LISTBAN",&listban_statement },\
+		   {  NULL,"GO",&go_statement },\
+		   {  NULL,"WALL",&wall_statement },\
+		   {  NULL,"TAKE",&take_statement },\
+		   {  NULL,"RELOAD",&reload_statement },\
+		   {  NULL,"SHUTDOWN",&shutdown_statement },\
+		   {  NULL,"ADDCLASS",&addclass_statement },\
+		   {  NULL,"ADDRACE",&addrace_statement },\
+		   {  NULL,"DROPDEAD",&dropdead_statement },\
+		   {  NULL,"VISIBLE",&visible_statement },\
+		   {  NULL,"INVISIBLE",&invisible_statement },\
+		   {  NULL,"GAG",&gag_statement },\
+		   {  NULL,"UNGAG",&ungag_statement },\
+		   {  NULL,"SETEXIT",&setexit_statement },\
+	           { NULL,NULL } };
+
 int docommand(user *currentuser,char *s) {
  char *cb[10][BUF_SIZE];
  char *param[BUF_SIZE];
  char *buf[BUF_SIZE];
- char *param_notfirsttwotokens[255];
  int countx;
  int count;
  int x;
- int cpc;
+ int tc;
  int r;
  char *b;
  room *currentroom;
  race race;
  class class;
  int whichroom;
+ int statementcount;
 
  if(!*s) return;			/* no command */
-
- printf("commandroom=%lX\n",currentuser);
 
  currentroom=currentuser->roomptr;  
 
  memset(cb,0,10*BUF_SIZE);
- cpc=tokenize_line(s,cb," ");			/* tokenize line */
-
- strcpy(param_notfirsttwotokens,cb[2]);
-
-
- for(count=3;count<cpc;count++) {
-  strcat(param_notfirsttwotokens,cb[count]);
-  strcat(param_notfirsttwotokens," ");
- }
-
+ tc=tokenize_line(s,cb," ");			/* tokenize line */
 
  strcpy(param,cb[2]);
  strcat(param," ");
 
- for(count=3;count<cpc;count++) {
+ for(count=3;count<tc;count++) {
   strcat(param,cb[count]);
   strcat(param," ");
  }
+
+ statementcount=0;
+
+/* do statement */
+
+do {
+ if(statements[statementcount].statement == NULL) break;
+
+ touppercase(cb[0]);
+
+ if(strcmp(statements[statementcount].statement,cb[0]) == 0) {  
+  statements[statementcount].call_statement(currentuser,tc,cb);
+  statementcount=0;
+  return;
+ }
  
- printf("cb=%s\n",cb[0]);
+ statementcount++;
 
- if(strcmp(cb[0],"north") == 0 || strcmp(cb[0],"n") == 0) {   /* go in directions (north south east west,etc) */
-  go(currentuser,currentroom->exits[NORTH]);
+} while(statements[statementcount].statement != NULL);
+
+sprintf(buf,"%s","I don't understand that\n");
+send(currentuser->handle,buf,strlen(buf),0);
+
+return;
+}
+
+int north_statement(user *currentuser,int tc,char *cb[BUF_SIZE][BUF_SIZE]) {
+ room *currentroom=currentuser->roomptr;
+
+ go(currentuser,currentroom->exits[NORTH]);
+ return;
+}
+
+int south_statement(user *currentuser,int tc,char *cb[BUF_SIZE][BUF_SIZE]) {
+ room *currentroom=currentuser->roomptr;
+
+ go(currentuser,currentroom->exits[SOUTH]);
+ return;
+}
+
+int east_statement(user *currentuser,int tc,char *cb[BUF_SIZE][BUF_SIZE]) {
+ room *currentroom=currentuser->roomptr;
+
+ printf("currentroom=%lX\n",currentroom);
+
+ go(currentuser,currentroom->exits[EAST]);
+ return;
+}
+
+int west_statement(user *currentuser,int tc,char *cb[BUF_SIZE][BUF_SIZE]) {
+ room *currentroom=currentuser->roomptr;
+ go(currentuser,currentroom->exits[NORTH]);
+ return;
+}
+
+int northwest_statement(user *currentuser,int tc,char *cb[BUF_SIZE][BUF_SIZE]) {
+ room *currentroom=currentuser->roomptr;
+
+ go(currentuser,currentroom->exits[NORTHWEST]);
+ return;
+}
+
+int southwest_statement(user *currentuser,int tc,char *cb[BUF_SIZE][BUF_SIZE]) {
+ room *currentroom=currentuser->roomptr;
+
+ go(currentuser,currentroom->exits[SOUTHWEST]);
+ return;
+}
+
+int southeast_statement(user *currentuser,int tc,char *cb[BUF_SIZE][BUF_SIZE]) {
+ room *currentroom=currentuser->roomptr;
+
+ go(currentuser,currentroom->exits[SOUTHEAST]);
+ return;
+}
+
+int northeast_statement(user *currentuser,int tc,char *cb[BUF_SIZE][BUF_SIZE]) {
+ room *currentroom=currentuser->roomptr;
+
+ go(currentuser,currentroom->exits[NORTHEAST]);
+ return;
+}
+
+int up_statement(user *currentuser,int tc,char *cb[BUF_SIZE][BUF_SIZE]) {
+ room *currentroom=currentuser->roomptr;
+
+ go(currentuser,currentroom->exits[UP]);
+ return;
+}
+
+int down_statement(user *currentuser,int tc,char *cb[BUF_SIZE][BUF_SIZE]) {
+ room *currentroom=currentuser->roomptr;
+
+ go(currentuser,currentroom->exits[DOWN]);
+ return;
+}
+
+int look_statement(user *currentuser,int tc,char *cb[BUF_SIZE][BUF_SIZE]) {
+ look(currentuser,cb[1]);
+ return;
+}
+
+int who_statement(user *currentuser,int tc,char *cb[BUF_SIZE][BUF_SIZE]) {
+ who(currentuser,cb[1]);
+ return;
+}
+
+int say_statement(user *currentuser,int tc,char *cb[BUF_SIZE][BUF_SIZE]) {
+int count;
+char *param[BUF_SIZE];
+char *buf[BUF_SIZE];
+
+ if(tc < 2) {
+  send(currentuser->handle,noparam,strlen(noparam),0);
   return;
  }
 
- if(strcmp(cb[0],"south") == 0 || strcmp(cb[0],"s") == 0) { 
-  go(currentuser,currentroom->exits[SOUTH]);
-  return;
+ for(count=1;count<tc;count++) {
+  strcat(param,cb[count]);
+  strcat(param," ");
  }
 
- if(strcmp(cb[0],"east") == 0 || strcmp(cb[0],"e") == 0) {   
-  go(currentuser,currentroom->exits[EAST]);
-  return;
+ if((currentuser->flags & USER_INVISIBLE) == 0) {
+  sprintf(buf,"%s Says, \042%s\042\r\n",currentuser->name,param);
  }
-
- if(strcmp(cb[0],"west") == 0 || strcmp(cb[0],"w") == 0) {   
-  go(currentuser,currentroom->exits[WEST]);
-  return;
+ else
+ {
+  sprintf(buf,"Somebody Says, \042%s\042\r\n",param);
  }
-
- if(strcmp(cb[0],"northeast") == 0 || strcmp(cb[0],"ne") == 0) {   
-  go(currentuser,currentroom->exits[NORTHEAST]);
-  return;
- }
-
- if(strcmp(cb[0],"northwest") == 0 || strcmp(cb[0],"nw") == 0) {   
-  go(currentuser,currentroom->exits[NORTHWEST]);
-  return;
- }
-
- if(strcmp(cb[0],"southeast") == 0 || strcmp(cb[0],"se") == 0) {   
-  go(currentuser,currentroom->exits[SOUTHEAST]);
-  return;
- }
-
- if(strcmp(cb[0],"southwest") == 0 || strcmp(cb[0],"sw") == 0) {   
-  go(currentuser,currentroom->exits[SOUTHWEST]);
-  return;
- }
-
- if(strcmp(cb[0],"up") == 0 || strcmp(cb[0],"u") == 0) {   
-  go(currentuser,currentroom->exits[UP]);
-  return;
- }
-
- if(strcmp(cb[0],"down") == 0 || strcmp(cb[0],"d") == 0) {   
-  go(currentuser,currentroom->exits[DOWN]);
-  return;
- }
-
- if(strcmp(cb[0],"look") == 0) {   			/* look at person or object */
-  look(currentuser,cb[1]);
-  return;
- }
-
- if(strcmp(cb[0],"who") == 0) {   			/* get connected user/s */
-  who(currentuser,cb[1]);
-  return;
- }
-
- if(strcmp(cb[0],"say") == 0) {   			/* say something */
-  if(cpc < 2) {
-   send(currentuser->handle,noparam,strlen(noparam),0);
-   return;
-  }
-
-  for(count=1;count<cpc;count++) {
-   strcat(param,cb[count]);
-   strcat(param," ");
-  }
-
-   if((currentuser->flags & USER_INVISIBLE) == 0) {
-    sprintf(buf,"%s Says, \042%s\042\r\n",currentuser->name,param);
-   }
-   else
-   {
-    sprintf(buf,"Somebody Says, \042%s\042\r\n",param);
-   }
 	
-   sendmudmessagetoall(currentuser->room,buf);
-   return;
- }
+ sendmudmessagetoall(currentuser->room,buf);
+ return;
+}
 
- if(strcmp(cb[0],"whisper") == 0) {   			/* send private message */
-  if(cpc < 2) {
-   send(currentuser->handle,noparam,strlen(noparam),0);
-   return;
-  }
+int whisper_statement(user *currentuser,int tc,char *cb[BUF_SIZE][BUF_SIZE]) {
+char *param_notfirsttwotokens[255];
+int count;
 
-  sendmudmessage(currentuser,cb[1],param_notfirsttwotokens);
+strcpy(param_notfirsttwotokens,cb[2]);
+
+for(count=3;count<tc;count++) {
+ strcat(param_notfirsttwotokens,cb[count]);
+ strcat(param_notfirsttwotokens," ");
+}
+
+ if(tc < 2) {
+  send(currentuser->handle,noparam,strlen(noparam),0);
   return;
  }
 
- if(strcmp(cb[0],":") == 0 || strcmp(cb[0],"pose") == 0) {  /* pose */
-  if(cpc < 2) {
-   send(currentuser->handle,noparam,strlen(noparam),0);
-   return;
-  }
+ sendmudmessage(currentuser,cb[1],param_notfirsttwotokens);
+ return;
+}
+
+int pose_statement(user *currentuser,int tc,char *cb[BUF_SIZE][BUF_SIZE]) {
+char *param[BUF_SIZE];
+int count;
+
+if(tc < 2) {
+ send(currentuser->handle,noparam,strlen(noparam),0);
+ return;
+}
  
- strcpy(param,cb[1]);
+strcpy(param,cb[1]);
+strcat(param," ");
+
+for(count=2;count<tc;count++) {
+ strcat(param,cb[count]);
  strcat(param," ");
-
- for(count=2;count<cpc;count++) {
-  strcat(param,cb[count]);
-  strcat(param," ");
- }
+}
  
- pose(currentuser,param);
-  return;
- }
-
- if(strcmp(cb[0],"home") == 0) {			/* go to home room */
-  go(currentuser,currentuser->homeroom);
-  return;
- }
-
- if(strcmp(cb[0],"quit") == 0) {			/* quit */
-  quit(currentuser);
- }
-
- if(strcmp(cb[0],"version") == 0) {			/* display version */
-  sprintf(buf,"%s %d.%d\r\n",MUD_NAME,MAJOR_VERSION,MINOR_VERSION);
-  send(currentuser->handle,buf,strlen(buf),0);
-  return;
- }
-
- if(strcmp(cb[0],"describe") == 0) {			/* describe youself or object or room */
-  if(cpc < 2) {
-   send(currentuser->handle,noparam,strlen(noparam),0);
-   return;
-  }
-
-  describe(currentuser,cb[1],param_notfirsttwotokens);
-  return; 
- }
-
- if(strcmp(cb[0],"get") == 0) {				/* get object */
-  if(cpc < 2) {
-   send(currentuser->handle,noparam,strlen(noparam),0);
-   return;
-  }
-
-  pickup(currentuser,cb[1]);
-  return;
+pose(currentuser,param);
+return;
 }
 
- if(strcmp(cb[0],"drop") == 0) {			/* drop object */
-  if(cpc < 2) {
-   send(currentuser->handle,noparam,strlen(noparam),0);
-   return;
-  }
-
-  drop(currentuser,cb[1]);
-  return;
- }
-
- if(strcmp(cb[0],"help") == 0) {			/* get help */
-  showhelp(currentuser,cb[1]);
-  return;
- }
-
- if(strcmp(cb[0],"password") == 0) {			/* change password */
-  changepassword(currentuser,cb[1]);
-  return;
- }
-
- if(strcmp(cb[0],"spell") == 0) {			/* cast spell */
-  if(cpc < 2) {
-   send(currentuser->handle,noparam,strlen(noparam),0);
-   return;
-  }
-
-  castspell(currentuser,cb[1],cb[2]);
-  return;
- }
-
- if(strcmp(cb[0],"f") == 0) {				/* fight monster or person */
-  attack(currentuser,cb[1]);
-  return;
- }
-
- if(strcmp(cb[0],"score") == 0) {			/* displays score */
-  score(currentuser,cb[1]);
-  return;
- }
-
- if(strcmp(cb[0],"inv") == 0) {				/* display inventory */
-  inventory(currentuser,cb[1]);
-  return;
- }
-
- if(strcmp(cb[0],"give") == 0) {			/* give object to someone */
-  if(cpc < 2) {
-   send(currentuser->handle,noparam,strlen(noparam),0);
-   return;
-  }
-
-  give(currentuser,cb[1],cb[2]);
-  return;
+int home_statement(user *currentuser,int tc,char *cb[BUF_SIZE][BUF_SIZE]) {
+ go(currentuser,currentuser->homeroom);
+ return;
 }
 
- if(strcmp(cb[0],"xyzzy") == 0) {                        /* ??? */
-  send(currentuser->handle,"Nothing happens\r\n",17,0);
+int quit_statement(user *currentuser,int tc,char *cb[BUF_SIZE][BUF_SIZE]) {
+ quit(currentuser);
+}
+
+int version_statement(user *currentuser,int tc,char *cb[BUF_SIZE][BUF_SIZE]) {
+ char *buf[BUF_SIZE];
+
+ sprintf(buf,"%s %d.%d\r\n",MUD_NAME,MAJOR_VERSION,MINOR_VERSION);
+ send(currentuser->handle,buf,strlen(buf),0);
+ return;
+}
+
+int describe_statement(user *currentuser,int tc,char *cb[BUF_SIZE][BUF_SIZE]) {
+char *param_notfirsttwotokens[255];
+int count;
+
+if(tc < 2) {
+ send(currentuser->handle,noparam,strlen(noparam),0);
+ return;
+}
+
+strcpy(param_notfirsttwotokens,cb[2]);
+
+for(count=3;count<tc;count++) {
+ strcat(param_notfirsttwotokens,cb[count]);
+ strcat(param_notfirsttwotokens," ");
+}
+
+describe(currentuser,cb[1],param_notfirsttwotokens);
+return; 
+}
+
+int get_statement(user *currentuser,int tc,char *cb[BUF_SIZE][BUF_SIZE]) {
+ if(tc < 2) {
+  send(currentuser->handle,noparam,strlen(noparam),0);
   return;
  }
+
+pickup(currentuser,cb[1]);
+return;
+}
+
+int drop_statement(user *currentuser,int tc,char *cb[BUF_SIZE][BUF_SIZE]) {
+ if(tc < 2) {
+  send(currentuser->handle,noparam,strlen(noparam),0);
+  return;
+ }
+
+drop(currentuser,cb[1]);
+return;
+}
+
+int help_statement(user *currentuser,int tc,char *cb[BUF_SIZE][BUF_SIZE]) {
+ showhelp(currentuser,cb[1]);
+ return;
+}
+
+int password_statement(user *currentuser,int tc,char *cb[BUF_SIZE][BUF_SIZE]) {
+ changepassword(currentuser,cb[1]);
+ return;
+}
+
+int spell_statement(user *currentuser,int tc,char *cb[BUF_SIZE][BUF_SIZE]) {
+ if(tc < 2) {
+  send(currentuser->handle,noparam,strlen(noparam),0);
+  return;
+ }
+
+ castspell(currentuser,cb[1],cb[2]);
+ return;
+ }
+
+int fight_statement(user *currentuser,int tc,char *cb[BUF_SIZE][BUF_SIZE]) {
+ attack(currentuser,cb[1]);
+ return;
+}
+
+int score_statement(user *currentuser,int tc,char *cb[BUF_SIZE][BUF_SIZE]) {
+ score(currentuser,cb[1]);
+ return;
+}
+
+int inv_statement(user *currentuser,int tc,char *cb[BUF_SIZE][BUF_SIZE]) {
+ inventory(currentuser,cb[1]);
+ return;
+}
+
+int give_statement(user *currentuser,int tc,char *cb[BUF_SIZE][BUF_SIZE]) {
+ if(tc < 2) {
+  send(currentuser->handle,noparam,strlen(noparam),0);
+  return;
+ }
+
+ give(currentuser,cb[1],cb[2]);
+ return;
+}
+
+int xyzzy_statement(user *currentuser,int tc,char *cb[BUF_SIZE][BUF_SIZE]) {
+ send(currentuser->handle,"Nothing happens\r\n",17,0);
+ return;
+}
 
 /* ********************************
  *        Wizard commands       *
  ********************************
 */
 
-if(strcmp(cb[0],"setrace") == 0) {
+int setrace_statement(user *currentuser,int tc,char *cb[BUF_SIZE][BUF_SIZE]) {
  if(currentuser->status < WIZARD) {		/* can't do this yet */
   send(currentuser->handle,notyet,strlen(notyet),0);
   return;
  }
 
-  if(cpc < 2) {
+  if(tc < 2) {
    send(currentuser->handle,noparam,strlen(noparam),0);
    return;
   }
@@ -318,7 +550,9 @@ if(strcmp(cb[0],"setrace") == 0) {
 /*
  * set configuration options */
 
-if(strcmp(cb[0],"set") == 0) {
+int set_statement(user *currentuser,int tc,char *cb[BUF_SIZE][BUF_SIZE]) {
+char *buf[BUF_SIZE];
+
   if(currentuser->status < ARCHWIZARD) {		/* can't do this yet */
    send(currentuser->handle,notyet,strlen(notyet),0);
    return;
@@ -441,19 +675,8 @@ if(strcmp(cb[0],"set") == 0) {
    return;
   }
 
- if(strcmp(cb[0],"setgender") == 0) {			/* set gender */
-  if(cpc < 2) {
-   send(currentuser->handle,noparam,strlen(noparam),0);
-   return;
-  }
-
-  setgender(currentuser,cb[1],cb[2]);
-  return;
- }
-
-
- if(strcmp(cb[0],"sethome") == 0) {			/* set home */
-  if(cpc < 2) {
+int sethome_statement(user *currentuser,int tc,char *cb[BUF_SIZE][BUF_SIZE]) {
+  if(tc < 2) {
    send(currentuser->handle,noparam,strlen(noparam),0);
    return;
   }
@@ -467,336 +690,344 @@ if(strcmp(cb[0],"set") == 0) {
  return;
  }
 
- if(strcmp(cb[0],"setgender") == 0) {			/* set gender */
-  if(cpc < 2) {
-   send(currentuser->handle,noparam,strlen(noparam),0);
-   return;
-  }
-
-  setgender(currentuser,cb[1],cb[2]);
-  return;
- }
-
- if(strcmp(cb[0],"setlevel") == 0) {			/* set level */
-  if(cpc < 2) {
-   send(currentuser->handle,noparam,strlen(noparam),0);
-   return;
-  }
-
-  setlevel(currentuser,cb[1],cb[2]);
-  return;
- }
-
- if(strcmp(cb[0],"setclass") == 0) {			/* set class */
-  if(cpc < 2) {
-   send(currentuser->handle,noparam,strlen(noparam),0);
-   return;
-  }
-
-  updateuser(currentuser,cb[1],"",0,0,"",0,0,0,0,"",cb[2],0);
-  return;
- }
-
- if(strcmp(cb[0],"setxp") == 0) {			/* set experience  */
-  if(cpc < 2) {
-   send(currentuser->handle,noparam,strlen(noparam),0);
-   return;
-  }
-
-  setpoints(currentuser,cb[1],cb[2],EXPERIENCEPOINTS);
-  return;
- }
-
- if(strcmp(cb[0],"setmp") == 0) {			/* set magic  */
-  if(cpc < 2) {
-   send(currentuser->handle,noparam,strlen(noparam),0);
-   return;
-  }
-
-  setpoints(currentuser,cb[1],cb[2],MAGICPOINTS);
-  return;
- }
-
- if(strcmp(cb[0],"setsp") == 0) {			/* set experience  */
-  if(cpc < 2) {
-   send(currentuser->handle,noparam,strlen(noparam),0);
-   return;
-  }
-
-  setpoints(currentuser,cb[1],cb[2],STAMINAPOINTS);
-  return;
- }
-
- if(strcmp(cb[0],"banip") == 0) {			/* ban  */
-  if(cpc < 2) {
-   send(currentuser->handle,noparam,strlen(noparam),0);
-   return;
-  }
-
-  banip(currentuser,cb[1]);
-  return;
- }
-
- if(strcmp(cb[0],"unban") == 0) {			/* unban  */
-  if(cpc < 2) {
-   send(currentuser->handle,noparam,strlen(noparam),0);
-   return;
-  }
-
-  unbanip(currentuser,cb[1]);
-  return;
- }
-
- if(strcmp(cb[0],"ban") == 0) {			/* ban  */
-  userban(currentuser,cb[1]);
-  return;
- }
-
-
- if(strcmp(cb[0],"kill") == 0) {			/* kill  */
-  if(cpc < 2) {
-   send(currentuser->handle,noparam,strlen(noparam),0);
-   return;
-  }
-
-  return(killuser(currentuser,cb[1]));
- }
-
- if(strcmp(cb[0],"create") == 0) {			/* create object */
-  if(cpc < 2) {
-   send(currentuser->handle,noparam,strlen(noparam),0);
-   return;
-  }
-
-  createobject(currentuser,cb[1]);
-  return;
- }
-
- if(strcmp(cb[0],"delete") == 0) {			/* delete object */
-  if(cpc < 2) {
-   send(currentuser->handle,noparam,strlen(noparam),0);
-   return;
-  }
-
-  deletething(currentuser,cb[1]);
-  return;
- }
-
- if(strcmp(cb[0],"rename") == 0) {			/* rename object */
-  if(cpc < 2) {
-   send(currentuser->handle,noparam,strlen(noparam),0);
-   return;
-  }
-
-  renameobject(currentuser,cb[1],cb[2]);
-  return;
- }
-
- if(strcmp(cb[0],"chown") == 0) {			/* set object owner */
-  if(cpc < 2) {
-   send(currentuser->handle,noparam,strlen(noparam),0);
-   return;
-  }
-
-  setowner(currentuser,cb[1],cb[2]);
-  return;
- }
-
- if(strcmp(cb[0],"chmod") == 0) {			/* set object attributes */
-  if(cpc < 2) {
-   send(currentuser->handle,noparam,strlen(noparam),0);
-   return;
-  }
-
-  setobjectattributes(currentuser,cb[1],cb[2]);
-  return;
- }
-
- if(strcmp(cb[0],"copy") == 0) {			/* move object */
-  if(cpc < 2) {
-   send(currentuser->handle,noparam,strlen(noparam),0);
-   return;
-  }
-
-  copyobject(currentuser,cb[1],atoi(cb[2]));
-  return;
- }
-
- if(strcmp(cb[0],"move") == 0) {			/* move object */
-  if(cpc < 2) {
-   send(currentuser->handle,noparam,strlen(noparam),0);
-   return;
-  }
-
-  copyobject(currentuser,cb[1],atoi(cb[2]));
-  deletething(currentuser,cb[1]);
-  return;
- }
-
- if(strcmp(cb[0],"dig") == 0) {				/* create room */
-  createroom(currentuser,cb[1]);
-  return;
- }
-
- if(strcmp(cb[0],"force") == 0) {			/* force user */
-  if(cpc < 2) {
-   send(currentuser->handle,noparam,strlen(noparam),0);
-   return;
-  }
-
-  printf("cmd=%s\n",param);
-
-  force(currentuser,cb[1],param);
-  return;
- }
-
- if(strcmp(cb[0],"listban") == 0) {			/* force user */
-  listbans(currentuser,cb[1]);
-  return;
- }
-
- if(strcmp(cb[0],"go") == 0) {				/* go somewhere */
-  if(cpc < 2) {
-   send(currentuser->handle,noparam,strlen(noparam),0);
-   return;
-  }
-
-  if(currentuser->status < WIZARD) {		/* can't do that */
-   send(currentuser->handle,notyet,strlen(notyet),0);
-   return;
-  }
-
-  go(currentuser,atoi(cb[1]));
-  return;
- }
-
- if(strcmp(cb[0],"wall") == 0) {			/*send message to all */
-  if(cpc < 2) {
-   send(currentuser->handle,noparam,strlen(noparam),0);
-   return;
-  }
-
-  wall(currentuser,cb[1]);
-  return;
- }
-
- if(strcmp(cb[0],"take") == 0) {			/* take object */
-  if(cpc < 2) {
-   send(currentuser->handle,noparam,strlen(noparam),0);
-   return;
-  }
-
-  take(currentuser,cb[1],cb[2]);
-  return;
- }
-
- if(strcmp(cb[0],"reload") == 0) {
-
-  if(currentuser->status < ARCHWIZARD) {		/* can't do this yet */
-   send(currentuser->handle,notyet,strlen(notyet),0);
-   return;
-  }
-
-  getconfig();
- }
-
-
- if(strcmp(cb[0],"shutdown") == 0) {
-  mudshutdown(currentuser,cb[1]);
-  return;
- }
-
-
- if(strcmp(cb[0],"addclass") == 0) {
-  if(cpc < 2) {
-   send(currentuser->handle,noparam,strlen(noparam),0);
-   return;
-  }
-
-  strcpy(class.name,cb[1]);
-  
-  if(addnewclass(class) == -1) {
-   send(currentuser->handle,mudnomem,strlen(mudnomem),0);
-   return;
-  }
-
-  return;
- }
-
- if(strcmp(cb[0],"addrace") == 0) {
-  if(cpc < 9) {
-   send(currentuser->handle,noparam,strlen(noparam),0);
-   return;
-  }
-
-  strcpy(race.name,cb[1]);
-  race.magic=atoi(cb[2]);
-  race.strength=atoi(cb[3]);
-  race.agility=atoi(cb[4]);
-  race.luck=atoi(cb[5]);
-  race.wisdom=atoi(cb[6]);
-  race.intelligence=atoi(cb[7]);
-  race.stamina=atoi(cb[8]);
-
-  if(addnewrace(currentuser,&race) == -1) {
-   send(currentuser->handle,mudnomem,strlen(mudnomem),0);
-   return;
-  }
-
-  return;
- }
- 
- if(strcmp(cb[0],"dropdead") == 0) {
-  updateuser(currentuser,currentuser->name,"",0,0,"",0,0,0,0,"","",0); 
-  return;
- }
-
- if(strcmp(cb[0],"visible") == 0) {
-  visible(currentuser,cb[1],FALSE);
-  return;
- }
-
- if(strcmp(cb[0],"invisible") == 0) {
-  visible(currentuser,cb[1],TRUE);
-  return;
- }
-
- if(strcmp(cb[0],"gag") == 0) {
-  gag(currentuser,cb[1],TRUE);
-  return;
- }
-
- if(strcmp(cb[0],"ungag") == 0) {
-  gag(currentuser,cb[1],FALSE);
-  return;
- }
-
- if(strcmp(cb[0],"setexit") == 0) {
-  if(strcmp(cb[1],"here") == 0) {
-   count=currentuser->room;
-  }
-  else
-  {
-   count=atoi(cb[1]);
-  }
-
-  if(strcmp(cb[3],"here") == 0) {
-   r=currentuser->room;
-  }
-  else
-  {
-   r=atoi(cb[3]);
-  }
-
-  for(whichroom=0;whichroom<11;whichroom++) {
-   if(strcmp(roomnames[whichroom],cb[4]) == 0) break;
-  }
-
-  setexit(currentuser,count,atoi(cb[2]),whichroom);
-  return;
- }
-
- send(currentuser->handle,idontunderstandthat,strlen(idontunderstandthat),0);		/* bad command */
+int setgender_statement(user *currentuser,int tc,char *cb[BUF_SIZE][BUF_SIZE]) {
+if(tc < 2) {
+ send(currentuser->handle,noparam,strlen(noparam),0);
  return;
+}
+
+setgender(currentuser,cb[1],cb[2]);
+return;
+}
+
+int setlevel_statement(user *currentuser,int tc,char *cb[BUF_SIZE][BUF_SIZE]) {
+if(tc < 2) {
+ send(currentuser->handle,noparam,strlen(noparam),0);
+ return;
+}
+
+setlevel(currentuser,cb[1],cb[2]);
+return;
+}
+
+int setclass_statement(user *currentuser,int tc,char *cb[BUF_SIZE][BUF_SIZE]) {
+if(tc < 2) {
+ send(currentuser->handle,noparam,strlen(noparam),0);
+ return;
+}
+
+updateuser(currentuser,cb[1],"",0,0,"",0,0,0,0,"",cb[2],0);
+return;
+}
+
+int setxp_statement(user *currentuser,int tc,char *cb[BUF_SIZE][BUF_SIZE]) {
+if(tc < 2) {
+ send(currentuser->handle,noparam,strlen(noparam),0);
+ return;
+}
+
+setpoints(currentuser,cb[1],cb[2],EXPERIENCEPOINTS);
+return;
+}
+
+int setmp_statement(user *currentuser,int tc,char *cb[BUF_SIZE][BUF_SIZE]) {
+ if(tc < 2) {
+  send(currentuser->handle,noparam,strlen(noparam),0);
+  return;
+ }
+
+setpoints(currentuser,cb[1],cb[2],MAGICPOINTS);
+return;
+}
+
+int setsp_statement(user *currentuser,int tc,char *cb[BUF_SIZE][BUF_SIZE]) {
+ if(tc < 2) {
+  send(currentuser->handle,noparam,strlen(noparam),0);
+  return;
+ }
+
+ setpoints(currentuser,cb[1],cb[2],STAMINAPOINTS);
+  return;
+ }
+
+int banip_statement(user *currentuser,int tc,char *cb[BUF_SIZE][BUF_SIZE]) {
+if(tc < 2) {
+ send(currentuser->handle,noparam,strlen(noparam),0);
+ return;
+}
+
+banip(currentuser,cb[1]);
+return;
+}
+
+int unban_statement(user *currentuser,int tc,char *cb[BUF_SIZE][BUF_SIZE]) {
+if(tc < 2) {
+ send(currentuser->handle,noparam,strlen(noparam),0);
+ return;
+}
+
+unbanip(currentuser,cb[1]);
+return;
+}
+
+int ban_statement(user *currentuser,int tc,char *cb[BUF_SIZE][BUF_SIZE]) {
+ userban(currentuser,cb[1]);
+ return;
+}
+
+int kill_statement(user *currentuser,int tc,char *cb[BUF_SIZE][BUF_SIZE]) {
+ if(tc < 2) {
+  send(currentuser->handle,noparam,strlen(noparam),0);
+  return;
+ }
+
+ return(killuser(currentuser,cb[1]));
+}
+
+int create_statement(user *currentuser,int tc,char *cb[BUF_SIZE][BUF_SIZE]) {
+ if(tc < 2) {
+  send(currentuser->handle,noparam,strlen(noparam),0);
+  return;
+ }
+
+ createobject(currentuser,cb[1]);
+ return;
+}
+
+int delete_statement(user *currentuser,int tc,char *cb[BUF_SIZE][BUF_SIZE]) {
+ if(tc < 2) {
+  send(currentuser->handle,noparam,strlen(noparam),0);
+  return;
+ }
+
+deletething(currentuser,cb[1]);
+return;
+}
+
+int rename_statement(user *currentuser,int tc,char *cb[BUF_SIZE][BUF_SIZE]) {
+ if(tc < 2) {
+  send(currentuser->handle,noparam,strlen(noparam),0);
+  return;
+ }
+
+renameobject(currentuser,cb[1],cb[2]);
+return;
+}
+
+int chown_statement(user *currentuser,int tc,char *cb[BUF_SIZE][BUF_SIZE]) {		/* set object owner */
+if(tc < 2) {
+ send(currentuser->handle,noparam,strlen(noparam),0);
+ return;
+}
+
+setowner(currentuser,cb[1],cb[2]);
+return;
+}
+
+int chmod_statement(user *currentuser,int tc,char *cb[BUF_SIZE][BUF_SIZE]) {
+ if(tc < 2) {
+  send(currentuser->handle,noparam,strlen(noparam),0);
+  return;
+ }
+
+setobjectattributes(currentuser,cb[1],cb[2]);
+return;
+}
+
+int copy_statement(user *currentuser,int tc,char *cb[BUF_SIZE][BUF_SIZE]) {
+if(tc < 2) {
+ send(currentuser->handle,noparam,strlen(noparam),0);
+ return;
+}
+
+copyobject(currentuser,cb[1],atoi(cb[2]));
+return;
+}
+
+int move_statement(user *currentuser,int tc,char *cb[BUF_SIZE][BUF_SIZE]) {
+if(tc < 2) {
+ send(currentuser->handle,noparam,strlen(noparam),0);
+ return;
+}
+
+copyobject(currentuser,cb[1],atoi(cb[2]));
+deletething(currentuser,cb[1]);
+return;
+}
+
+int dig_statement(user *currentuser,int tc,char *cb[BUF_SIZE][BUF_SIZE]) {
+ createroom(currentuser,cb[1]);
+ return;
+}
+
+int force_statement(user *currentuser,int tc,char *cb[BUF_SIZE][BUF_SIZE]) {
+char *param[BUF_SIZE];
+int count;
+
+if(tc < 2) {
+ send(currentuser->handle,noparam,strlen(noparam),0);
+ return;
+}
+ 
+strcpy(param,cb[1]);
+strcat(param," ");
+
+for(count=2;count<tc;count++) {
+ strcat(param,cb[count]);
+ strcat(param," ");
+}
+
+force(currentuser,cb[1],param);
+return;
+}
+
+int listban_statement(user *currentuser,int tc,char *cb[BUF_SIZE][BUF_SIZE]) {
+ listbans(currentuser,cb[1]);
+ return;
+}
+
+int go_statement(user *currentuser,int tc,char *cb[BUF_SIZE][BUF_SIZE]) {
+if(tc < 2) {
+ send(currentuser->handle,noparam,strlen(noparam),0);
+ return;
+}
+
+if(currentuser->status < WIZARD) {		/* can't do that */
+ send(currentuser->handle,notyet,strlen(notyet),0);
+ return;
+}
+
+go(currentuser,atoi(cb[1]));
+return;
+}
+
+int wall_statement(user *currentuser,int tc,char *cb[BUF_SIZE][BUF_SIZE]) {
+ if(tc < 2) {
+  send(currentuser->handle,noparam,strlen(noparam),0);
+  return;
+ }
+
+ wall(currentuser,cb[1]);
+ return;
+}
+
+int take_statement(user *currentuser,int tc,char *cb[BUF_SIZE][BUF_SIZE]) {
+if(tc < 2) {
+ send(currentuser->handle,noparam,strlen(noparam),0);
+ return;
+}
+
+take(currentuser,cb[1],cb[2]);
+return;
+}
+
+int reload_statement(user *currentuser,int tc,char *cb[BUF_SIZE][BUF_SIZE]) {
+if(currentuser->status < ARCHWIZARD) {		/* can't do this yet */
+ send(currentuser->handle,notyet,strlen(notyet),0);
+ return;
+}
+
+getconfig();
+}
+
+int shutdown_statement(user *currentuser,int tc,char *cb[BUF_SIZE][BUF_SIZE]) {
+ mudshutdown(currentuser,cb[1]);
+ return;
+}
+
+int addclass_statement(user *currentuser,int tc,char *cb[BUF_SIZE][BUF_SIZE]) {
+class class;
+
+if(tc < 2) {
+ send(currentuser->handle,noparam,strlen(noparam),0);
+ return;
+}
+
+strcpy(class.name,cb[1]);
+  
+if(addnewclass(class) == -1) {
+ send(currentuser->handle,mudnomem,strlen(mudnomem),0);
+ return;
+}
+
+return;
+}
+
+int addrace_statement(user *currentuser,int tc,char *cb[BUF_SIZE][BUF_SIZE]) {
+race race;
+if(tc < 9) {
+ send(currentuser->handle,noparam,strlen(noparam),0);
+ return;
+}
+
+strcpy(race.name,cb[1]);
+race.magic=atoi(cb[2]);
+race.strength=atoi(cb[3]);
+race.agility=atoi(cb[4]);
+race.luck=atoi(cb[5]);
+race.wisdom=atoi(cb[6]);
+race.intelligence=atoi(cb[7]);
+race.stamina=atoi(cb[8]);
+
+if(addnewrace(currentuser,&race) == -1) {
+ send(currentuser->handle,mudnomem,strlen(mudnomem),0);
+ return;
+}
+
+return;
+}
+
+int dropdead_statement(user *currentuser,int tc,char *cb[BUF_SIZE][BUF_SIZE]) {
+ updateuser(currentuser,currentuser->name,"",0,0,"",0,0,0,0,"","",0); 
+ return;
+}
+
+int invisible_statement(user *currentuser,int tc,char *cb[BUF_SIZE][BUF_SIZE]) {
+ invisible(currentuser,cb[1],FALSE);
+ return;
+}
+
+int visible_statement(user *currentuser,int tc,char *cb[BUF_SIZE][BUF_SIZE]) {
+ visible(currentuser,cb[1],TRUE);
+ return;
+}
+
+int gag_statement(user *currentuser,int tc,char *cb[BUF_SIZE][BUF_SIZE]) {
+ gag(currentuser,cb[1],TRUE);
+ return;
+}
+
+int ungag_statement(user *currentuser,int tc,char *cb[BUF_SIZE][BUF_SIZE]) {
+gag(currentuser,cb[1],FALSE);
+return;
+}
+
+int setexit_statement(user *currentuser,int tc,char *cb[BUF_SIZE][BUF_SIZE]) {
+int room;
+int r;
+int whichroom;
+
+if(strcmp(cb[1],"here") == 0) {
+ room=currentuser->room;
+}
+else
+{
+ room=atoi(cb[1]);
+}
+
+if(strcmp(cb[3],"here") == 0) {
+ r=currentuser->room;
+}
+else
+{
+ r=atoi(cb[3]);
+}
+
+for(whichroom=0;whichroom<11;whichroom++) {
+ if(strcmp(roomnames[whichroom],cb[4]) == 0) break;
+}
+
+setexit(currentuser,room,atoi(cb[2]),whichroom);
+return;
 }
 

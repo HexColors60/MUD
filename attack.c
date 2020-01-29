@@ -21,7 +21,7 @@
 /* combat functions */
 
 #include <stdio.h>
-     #include <fcntl.h>
+#include <fcntl.h>
 #ifdef _linux_
  #include <netdb.h>
  #include <sys/socket.h>
@@ -41,8 +41,11 @@
 
 #include "defs.h"
 
-extern char *nouser;
+extern char *nouser[BUF_SIZE];
 extern user *users;
+extern char *notthere[BUF_SIZE];
+extern int allowplayerkilling;
+extern room *rooms;
 
 char *fightprompt="fight>";
 char *havekilled=" and have killed it\r\n";

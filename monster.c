@@ -23,6 +23,9 @@
 char *monrel="/config/monsters.mud";
 monster *monsters=NULL;
 
+extern int roomcount;
+extern room *rooms;
+extern user *users;
 
 int movemonster(void) {
 user *usernext;

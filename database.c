@@ -30,6 +30,16 @@
 
 #include "defs.h"
 
+extern char *mudnomem[BUF_SIZE];
+extern int databasebackup;
+extern int databasememorysize;
+extern char *notyet[BUF_SIZE];
+extern int lastroom;
+extern char *noobject[BUF_SIZE];
+extern user *users;
+extern char *maleusertitles[12];
+extern char *femaleusertitles[12];
+
 
 char *dbconf[BUF_SIZE];
 char *dbrel="/config/database.mud";                                          /* configuration files */

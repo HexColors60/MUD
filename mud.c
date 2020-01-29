@@ -31,11 +31,25 @@
 char *banconf[BUF_SIZE];
 ban *bans=NULL;
 
-extern char *newpassprompt;
+extern char *mudserver[BUF_SIZE];
+extern int mudport;
+extern int objectresettime;
+extern int databaseresettime;
+extern int userresettime;
+extern int configsavetime;
+extern char *isbuf;
+extern int issuecount;
+extern int allownewaccounts;
+extern user *users;
+extern race *races;
+extern class *classes;
 
+char *mudnomem="mud:out of memory\n";
+char *noobject="Object not found\r\n";
+char *notyet="You can't do that yet\r\n";
 char *usernamerequired="Username is required\r\n";
 char *userexists="That username already exists\r\n";
-char *createpassprompt="Enter a password:";
+char *newpassprompt="Enter a password:";
 char *genderprompt="Gender [enter 'male' or 'female']:";
 char *badcreategender="Gender must be either male or female\r\n";
 char *descprompt="Enter a description for yourself:";
@@ -176,7 +190,7 @@ while(1) {
   d=d+databaseresettime;
  }
 
- if(currenttime > users) {	/* update users */
+ if(currenttime > userresettime) {	/* update users */
   printf("mud: Saving users\n");
 
   updateusersfile();
@@ -241,13 +255,15 @@ for(count=0;count <= maxsocket && retval > 0;count++) {		/* search sockets */
 	               send(as,userprompt,strlen(userprompt),0);  	
 		}
 
-	   	       connections[as].connectionstate=1;
+	   	       connections[as].connectionstate=STATE_GETPASSWORD;
 
 	   }
 
 	 memset(connections[count].temp,0,BUF_SIZE);
 
-        if(connections[count].connectionstate == 255) send(count,">",1,0);
+        if(connections[count].connectionstate == STATE_GETCOMMAND) send(count,">",1,0);
+
+/* get line from connection */
 	
          if(recv(count,connections[count].temp,BUF_SIZE,0) == -1) {	/* get data */
 	  FD_CLR(count,&readset);
@@ -344,6 +360,7 @@ for(count=0;count <= maxsocket && retval > 0;count++) {		/* search sockets */
 			}
 
 			strcpy(connections[count].uname,connections[count].buf);
+
 	 	      	send(count,newpassprompt,strlen(newpassprompt),0);
 		        connections[count].connectionstate=STATE_GETGENDER; /* next state */
 
@@ -385,6 +402,8 @@ for(count=0;count <= maxsocket && retval > 0;count++) {		/* search sockets */
 			strcpy(connections[count].description,connections[count].buf);
 			send(count,chooseplayerrace,strlen(chooseplayerrace),0);
 
+			/* show list of races */
+
 			racenext=races;				/* check if race exists */
 
 			while(racenext != NULL) {
@@ -402,7 +421,6 @@ for(count=0;count <= maxsocket && retval > 0;count++) {		/* search sockets */
 
  	  case STATE_GETCLASS:					/* get race and prompt for class */
 			strcpy(connections[count].race,connections[count].buf);
-
 
 			racenext=races;				/* check if race exists */
 
@@ -441,7 +459,12 @@ for(count=0;count <= maxsocket && retval > 0;count++) {		/* search sockets */
 			break;
 
 	  case STATE_CREATEUSER:					/* check class and create user */
+
+			printf("abc 1\n");
+
 			strcpy(connections[count].class,connections[count].buf);
+
+			printf("abc 2\n");
 
 			classnext=classes;
 
@@ -454,6 +477,8 @@ for(count=0;count <= maxsocket && retval > 0;count++) {		/* search sockets */
 			 classnext=classnext->next;
 			}
 		
+			printf("abc 3\n");
+
 			if(classnext == NULL) {		/* class not found, go back to state #14 */
 			 connections[count].connectionstate=STATE_CREATEUSER;
 			 send(count,unknownclass,strlen(unknownclass),0);
@@ -463,6 +488,8 @@ for(count=0;count <= maxsocket && retval > 0;count++) {		/* search sockets */
                         }
 
 	
+			printf("abc 4\n");
+
 			if(createuser(count,connections[count].uname,connections[count].upass,\
 			connections[count].gender,connections[count].description,connections[count].race,\
 			connections[count].class) == -1) {	/* can't create account */
@@ -471,6 +498,8 @@ for(count=0;count <= maxsocket && retval > 0;count++) {		/* search sockets */
 			  FD_CLR(count,&readset);
 			  close(count);
 			 }
+
+			printf("abc 5\n");
 
 			usernext=users;
 
@@ -482,6 +511,8 @@ for(count=0;count <= maxsocket && retval > 0;count++) {		/* search sockets */
                         
                          usernext=usernext->next;
 			}
+
+			printf("abc 6\n");
 
 			sprintf(temp,"Welcome %s\r\n",usernext->name);	/* send welcome message */
 			send(count,temp,strlen(temp),0);

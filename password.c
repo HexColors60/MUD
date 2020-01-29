@@ -21,10 +21,13 @@
 
 #include "defs.h"
 
+extern char *notyet[BUF_SIZE];
+
+
+int changepassword(user *currentuser,char *u) {
 char *newpassprompt="Enter new password:";
 char *weakpass="Password is not strong enough; the password must contain at least on capital letter, one lowercase letter, a number and a symbol (!$%^)";
 
-int changepassword(user *currentuser,char *u) {
  char *userx[BUF_SIZE];
  char *encryptedpassword[BUF_SIZE];
  char *newpass[BUF_SIZE];

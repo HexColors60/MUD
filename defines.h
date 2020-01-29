@@ -67,8 +67,8 @@
 #define OBJECT_OWNER		6
 #define OBJECT_ATTR		7
 
-#define MALE 			2                                                       /* genders */
-#define FEMALE 			4
+#define MALE 			0                                                       /* genders */
+#define FEMALE 			1
 
 #define OBJECT_DELETE_OWNER	1                                          /* object properties */
 #define OBJECT_DELETE_PUBLIC	2
@@ -199,7 +199,7 @@ typedef struct {
  int handle;
  int flags;
  char *ip[BUF_SIZE];
- struct mudobject *carryobjects;
+ struct roomobject *carryobjects;
  struct user *last;
  struct room *roomptr;
  struct user *next;

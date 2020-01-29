@@ -26,6 +26,33 @@
 
 #include "defs.h"
 
+extern char *mudnomem[BUF_SIZE];
+char *mudserver[BUF_SIZE];
+int mudport;
+int objectresettime;
+int databaseresettime;
+int banresettime;
+int userresettime;
+int configsavetime;
+int databasebackup;
+int allowplayerkilling;
+int allownewaccounts;
+int monsterresettime;
+int databasememorysize;
+
+int pointsforwarrior=400;
+int pointsforhero=800;
+int pointsforchampion=1600;
+int pointsforsuperhero=3200;
+int pointsforenchanter=6400;
+int pointsforsorceror=128000;
+int pointsfornecromancer=256000;
+int pointsforlegend=512000;
+int pointsforwizard=1024000;
+char *isbuf;
+int issuecount;
+int allownewaccounts;
+int lastroom;
 
 char *mudconf[BUF_SIZE];
 char *isconf[BUF_SIZE];
@@ -296,7 +323,6 @@ printf("Creating objects...");
 resetobjects();
 
 printf("ok\n");
-
 
 if(errorcount > 0) {			/* errors */
  printf("mud: %d errors\n",errorcount);

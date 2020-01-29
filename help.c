@@ -38,8 +38,8 @@
 #endif
 
 #include "defs.h"
-
 char *nohelp="Unknown help topic\r\n";
+char *helpprompt="-- Press any key to continue -- or type q to quit";
 
 int showhelp(user *currentuser,char *ht) {
 char *buf[BUF_SIZE];

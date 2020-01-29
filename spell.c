@@ -21,6 +21,11 @@
 
 #include "defs.h"
 
+extern user *users;
+extern int allowplayerkilling;
+extern char *maleusertitles[12];
+extern char *femaleusertitles[12];
+		
 spell *spells=NULL;
 char *spellconf[BUF_SIZE];
 char *spellsrel="/config/spells.mud";

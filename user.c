@@ -28,6 +28,29 @@
 #include "defs.h"
 
 user *users=NULL;
+extern char *notyet[BUF_SIZE];		/* defined in mud.c */
+extern char *noobject[BUF_SIZE];
+
+extern int pointsforwarrior;		/* defined in getconfig.c */
+extern int pointsforhero;
+extern int pointsforchampion;
+extern int pointsforsuperhero;
+extern int pointsforenchanter;
+extern int pointsforsorceror;
+extern int pointsfornecromancer;
+extern int pointsforlegend;
+extern int pointsforwizard;
+extern race *races;
+extern class *classes;
+
+extern int databaseupdated;		/* defined in database.c */
+extern room *rooms;
+extern int lastroom;
+extern char *noroom[BUF_SIZE];
+extern char *pd[BUF_SIZE];
+extern char *weakpass[BUF_SIZE];
+extern monster *monsters;		/* defined in monster.c */
+extern ban *bans;			/* defined in ban.c */
 
 /* titles */
  char *maleusertitles[] = {"","Novice","Warrior","Hero","Champion","Superhero","Enchanter","Sorceror","Necromancer", \
@@ -51,9 +74,6 @@ char *sillylevel="Level can't be 0\r\n";
 char *levelisbad="Level can't be higher than your own level\r\n";
 char *cantgothatway="You can't go that way\r\n";
 char *resetconf[BUF_SIZE];
-extern char *weakpass;
-extern monster *monsters;
-extern ban *bans;
 char *badgender="Invalid gender\r\n";
 char *nokill="This person cannot be killed\r\n";
 char *gameover="GAME OVER. You have 0 stamina points and are dead.\r\n";
@@ -982,7 +1002,7 @@ while(usernext != NULL) {
 	  				 usernext->desc,usernext->magicpoints,usernext->staminapoints,usernext->experiencepoints, \
 					 buf,racenext->name,classnext->name,usernext->flags);
 
- /* update inventory file */
+/* update inventory file */
 
  getcwd(buf,BUF_SIZE);
 
@@ -1001,7 +1021,7 @@ while(usernext != NULL) {
 
  fclose(handleinv);
 }
-
+		
 usernext=usernext->next;
 }
 
@@ -1385,6 +1405,8 @@ if(handle == NULL) {                                           /* couldn't open 
 
 while(!feof(handle)) {
  fgets(z,BUF_SIZE,handle);
+ 
+ if(strlen(z) < 2) continue;		/* ignore empty lines */
  if(feof(handle)) break;		/* at end */
 
   b=z;
@@ -1429,6 +1451,7 @@ while(!feof(handle)) {
  usernext->gender=atoi(ab[GENDER]);
  usernext->handle=0;
  usernext->flags=atoi(ab[USERFLAGS]);
+ usernext->next=NULL;
 
  userrace=races;		/* load race */
  racelast=races;
@@ -1458,8 +1481,10 @@ while(!feof(handle)) {
   userclass=userclass->next;
  }
 
-
+/* update inventory file */
+	
 }
+
 
 fclose(handle);
 }
@@ -1902,16 +1927,28 @@ class *classnext;
 race *racelast;
 class *classlast;
 
-usernext=users;
-while(usernext != NULL) {
+
+if(usernext == NULL) {
+ users=calloc(1,sizeof(user));		/* add to end */
+ usernext=users;
+ userlast=users;
+}
+else
+{
  userlast=usernext;
- usernext=usernext->next;
+ usernext=users;
+
+ while(usernext != NULL) {
+  userlast=usernext;
+  usernext=usernext->next;
+ }
+ 
+ userlast->next=calloc(1,sizeof(user));		/* add to end */
+ if(userlast->next == NULL) return(-1);
 }
 
-userlast->next=calloc(1,sizeof(user));		/* add to end */
-if(userlast->next == NULL) return(-1);
-
 usernext=userlast->next;
+
 strcpy(usernext->name,name);		/* add usr */
 strcpy(usernext->password,pass);
 strcpy(usernext->desc,description);

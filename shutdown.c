@@ -19,6 +19,9 @@
 
 char *shutdownmsg="WARNING: server shutdown\r\n";
 
+extern char *notyet[BUF_SIZE];
+extern user *users;
+
 int mudshutdown(user *currentuser,char *shutdownmessage) {
  room *currentroom;
  user *usernext;
