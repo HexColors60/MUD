@@ -460,11 +460,7 @@ for(count=0;count <= maxsocket && retval > 0;count++) {		/* search sockets */
 
 	  case STATE_CREATEUSER:					/* check class and create user */
 
-			printf("abc 1\n");
-
 			strcpy(connections[count].class,connections[count].buf);
-
-			printf("abc 2\n");
 
 			classnext=classes;
 
@@ -477,8 +473,6 @@ for(count=0;count <= maxsocket && retval > 0;count++) {		/* search sockets */
 			 classnext=classnext->next;
 			}
 		
-			printf("abc 3\n");
-
 			if(classnext == NULL) {		/* class not found, go back to state #14 */
 			 connections[count].connectionstate=STATE_CREATEUSER;
 			 send(count,unknownclass,strlen(unknownclass),0);
@@ -486,9 +480,6 @@ for(count=0;count <= maxsocket && retval > 0;count++) {		/* search sockets */
 
 			 break;
                         }
-
-	
-			printf("abc 4\n");
 
 			if(createuser(count,connections[count].uname,connections[count].upass,\
 			connections[count].gender,connections[count].description,connections[count].race,\
@@ -511,8 +502,6 @@ for(count=0;count <= maxsocket && retval > 0;count++) {		/* search sockets */
                         
                          usernext=usernext->next;
 			}
-
-			printf("abc 6\n");
 
 			sprintf(temp,"Welcome %s\r\n",usernext->name);	/* send welcome message */
 			send(count,temp,strlen(temp),0);
