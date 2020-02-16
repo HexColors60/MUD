@@ -27,15 +27,10 @@
 #endif
 
 #include <crypt.h>
+#include <time.h>
 
-#include "defs.h"
+#include "defines.h"
 
-extern char *mudnomem[BUF_SIZE];
-extern int databasebackup;
-extern int databasememorysize;
-extern char *notyet[BUF_SIZE];
-extern int lastroom;
-extern char *noobject[BUF_SIZE];
 extern user *users;
 extern char *maleusertitles[12];
 extern char *femaleusertitles[12];
@@ -43,11 +38,7 @@ extern char *femaleusertitles[12];
 
 char *dbconf[BUF_SIZE];
 char *dbrel="/config/database.mud";                                          /* configuration files */
-char *badexit="Invalid exit\r\n";
-char *notthere="Can't create objects here\r\n";
-char *objectexists="Object already exists\r\n";
 int databaseupdated;
-char *noroom="Room not found\r\n";
 
 char *roomnames[]={ "north","south","east","west","northeast","northwest","southeast","southwest","up","down" };
 
@@ -56,19 +47,14 @@ char *createmessage= { "A room has been created to the north\r\n","A room has be
 		       "A room has been created to the northeast\r\n","A room has been created to the northwest\r\n",\
 		       "A room has been created to the southeast\r\n","A room has been created to the southwest\r\n",\
 		       "A room has been created above you\r\n","A room has been created below you\r\n" };
-char *noroomcreate="Can't create room\r\n";
-char *nocreateroommsg="Can't create room here\r\n";
-char *defaultdesc="Empty room. Describe it with desc here <description>\r\n";
 char *resetconf[BUF_SIZE];
 char *resetrel="/config/reset.mud";
 char *roommsg="\r\nIn the room there is: ";
 char *roomexits[]={ "North ","South ","East ","West ","Northeast ","Northwest ","Southeast ","Southwest ","Up ","Down " };
 
-char *pd="Permission denied\r\n";
 room *rooms=NULL;
 race *races=NULL;
 class *classes=NULL;
-int roomcount;
 
 /* update database file */
 
@@ -80,15 +66,22 @@ time_t rawtime;
 struct tm *timeinfo;
 roomobject *roomobjects;
 int count;
+CONFIG config;
+
+getconfigurationinformation(&config);
 
 time(&rawtime);
 timeinfo=localtime(&rawtime);
 
+
 strftime(newname,BUF_SIZE,"/config/database-%H-%M-%S-%d-%e.sav",timeinfo);	/* get backup name */
+printf("%s\n",newname);
+
 getcwd(buf,BUF_SIZE);	
+
 strcat(buf,newname);
 
-if(databasebackup == TRUE) copyfile(dbconf,newname);		/* backup database */
+if(config.databasebackup == TRUE) copyfile(dbconf,newname);		/* backup database */
 
  handle=fopen(dbconf,"w");
  if(handle == NULL) return;	/* can't open file */
@@ -97,7 +90,7 @@ if(databasebackup == TRUE) copyfile(dbconf,newname);		/* backup database */
  * for each room output to file
  */
 
- for(count=0;count<roomcount+1;count++) {
+ for(count=0;count<config.roomcount+1;count++) {
   if(rooms[count].room > 0) {
    fprintf(handle,"begin_room:%d\n",rooms[count].room);
    fprintf(handle,"name:%s\n",rooms[count].name);
@@ -154,6 +147,9 @@ char *ab[19][BUF_SIZE];
 int count;
 int errorcount=0;
 int countx;
+CONFIG config;
+
+getconfigurationinformation(&config);
 
 getcwd(dbconf,BUF_SIZE);
 strcat(dbconf,dbrel);
@@ -164,20 +160,25 @@ strcat(dbconf,dbrel);
   exit(NOCONFIGFILE);
  }
 
-roomcount=0;
+config.roomcount=0;
 
 while(!feof(handle)) {
   fgets(z,BUF_SIZE,handle);				/*' get and parse line */
   
   tokenize_line(z,ab,":\n");				/* tokenize line */
-  if(strcmp(ab[0],"begin_room") == 0) roomcount++;
+  if(strcmp(ab[0],"begin_room") == 0) {
+   config.roomcount++;
+   updateconfigurationinformation(&config);
+
+  }
+
 }
 
 fseek(handle,0,SEEK_SET);
 
-databasememorysize=sizeof(room)*roomcount;
+config.databasememorysize=sizeof(room)*config.roomcount;
 
-rooms=calloc(roomcount,databasememorysize);	/* allocate buffer */
+rooms=calloc(config.roomcount,config.databasememorysize);	/* allocate buffer */
 if(rooms == NULL) {
  perror("mud:");
  exit(NOMEM);
@@ -207,7 +208,7 @@ count=0;
   if(strcmp(ab[0],"begin_room") == 0) {		/* room name */
    count=atoi(ab[1]);
   
-   if(count > roomcount) {
+   if(count > config.roomcount) {
     printf("mud: %d: room number is > number of rooms in %s\r\n",lc,dbconf); /* unknown configuration option */
     errorcount++;
     exit(1);
@@ -248,7 +249,7 @@ count=0;
   for(countx=0;countx<11;countx++) {
    if(strcmp(ab[0],roomnames[countx]) == 0) {		/* room exits */
 
-    if(atoi(ab[1])  > roomcount) {
+    if(atoi(ab[1])  > config.roomcount) {
      printf("mud: %d: room number is > number of rooms in %s\r\n",lc,dbconf); /* unknown configuration option */
      errorcount++;
      exit(1);
@@ -269,7 +270,7 @@ count=0;
     rooms[count].roomobjects=calloc(1,sizeof(roomobject));		/* add link to end */
 
     if(rooms[count].roomobjects == NULL) {		/* can't allocate */
-     printf("%s\n",mudnomem);
+     perror("mud:");
      exit(NOMEM);
     }
 
@@ -282,7 +283,7 @@ count=0;
     
     roomobject->next=calloc(1,sizeof(roomobject));		/* add link to end */
     if(roomobject->next == NULL) {		/* can't allocate */
-     printf("%s\n",mudnomem);
+     perror("mud:");
      exit(NOMEM);
     }
 
@@ -337,7 +338,7 @@ int addnewclass(user *currentuser,class *newclass) {
  class *last;
 
  if(currentuser->status < ARCHWIZARD) {		/* can't do this yet */
-  send(currentuser->handle,notyet,strlen(notyet),0);
+  display_error(currentuser->handle,NOT_YET);  
   return;
  }
 
@@ -358,19 +359,24 @@ int addnewclass(user *currentuser,class *newclass) {
 
 
 int setexit(user *currentuser,int whichroom,int direction,int exit) {
+ CONFIG config;
+
+ getconfigurationinformation(&config);
 
  if(currentuser->status < ARCHWIZARD) {		/* can't do this yet */
-  send(currentuser->handle,notyet,strlen(notyet),0);
+  display_error(currentuser->handle,NOT_YET);
   return;
  }
 
  if(direction > 11) {
-  send(currentuser->handle,badexit,strlen(badexit),0);
+ display_error(currentuser->handle,NOT_YET);  
+
+  display_error(currentuser->handle,INVALID_EXIT);
   return;
  }
 
- if(direction > roomcount) {
-  send(currentuser->handle,noroom,strlen(noroom),0);
+ if(direction > config.roomcount) {
+  display_error(currentuser->handle,BAD_ROOM);  
   return;
  }
 
@@ -385,11 +391,14 @@ int createroom(user *currentuser,char *r) {
  room temproom;
  char *buf[BUF_SIZE];
  int roomdir;
+ CONFIG config;
+
+ getconfigurationinformation(&config);
 
  currentroom=currentuser->roomptr;
 
  if(currentuser->status < WIZARD) {		/* must be wizard or higher level to create room */
-  send(currentuser->handle,notyet,strlen(notyet),0);
+  display_error(currentuser->handle,NOT_YET);
   return;
  }
 
@@ -399,7 +408,7 @@ int createroom(user *currentuser,char *r) {
 
 if(currentuser->status < ARCHWIZARD) {
  if((strcmp(rooms[currentuser->room].owner,currentuser->name) !=0) && (rooms[currentuser->room].attr  & ROOM_EXIT_PUBLIC) == 0 && currentuser->status < ARCHWIZARD) {
-  send(currentuser->handle,pd,strlen(pd),0);
+  display_error(currentuser->handle,ACCESS_DENIED);
   return;
  }
 
@@ -408,7 +417,7 @@ if(currentuser->status < ARCHWIZARD) {
  */
 
  if((strcmp(rooms[currentuser->room].owner,currentuser->name) == 0) && (rooms[currentuser->room].attr  & ROOM_EXIT_OWNER) == 0 && currentuser->status < ARCHWIZARD) {
-   send(currentuser->handle,pd,strlen(pd),0);
+   display_error(currentuser->handle,ACCESS_DENIED);
   return;
  }
 }
@@ -430,30 +439,30 @@ else
 }
 
 if(roomdir > 11) { 
- strcpy(buf,"Invalid direction\r\r\n");	/* bad direction */
- send(currentuser->handle, buf,strlen(buf),0);
+ display_error(currentuser->handle,BAD_DIRECTION);  
  return;
 }
 
-databasememorysize += sizeof(room);
+config.databasememorysize += sizeof(room);
 
-roomnext=realloc(rooms,databasememorysize);		/* resize database */
+roomnext=realloc(rooms,config.databasememorysize);		/* resize database */
 if(roomnext == NULL) {
- send(currentuser->handle,nocreateroommsg,sizeof(nocreateroommsg),0);
- send(currentuser->handle,strerror,strlen(strerror),0);
+ display_error(currentuser->handle,CANT_CREATE_ROOM);  
  return(-1);
 }
 
-roomcount++;
+config.roomcount++;
 
-memset(&rooms[roomcount],0,sizeof(room));		/* clear room */
-strcpy(rooms[roomcount].name,"Empty room\r\r\n");		/* create room info */
-strcpy(rooms[roomcount].owner,currentuser->name);
-strcpy(rooms[roomcount].desc,"Empty room, you can describe it using desc here <description>\r\r\n");
-rooms[roomcount].attr=ROOM_CREATE_OWNER+ROOM_EXIT_OWNER+ROOM_RENAME_OWNER;
-rooms[roomcount].room=++lastroom;
+memset(&rooms[config.roomcount],0,sizeof(room));		/* clear room */
+strcpy(rooms[config.roomcount].name,"Empty room\r\r\n");		/* create room info */
+strcpy(rooms[config.roomcount].owner,currentuser->name);
+strcpy(rooms[config.roomcount].desc,"Empty room, you can describe it using desc here <description>\r\r\n");
+rooms[config.roomcount].attr=ROOM_CREATE_OWNER+ROOM_EXIT_OWNER+ROOM_RENAME_OWNER;
+rooms[config.roomcount].room=++config.lastroom;
 
-currentroom->exits[roomdir]=roomcount;
+currentroom->exits[roomdir]=config.roomcount;
+
+updateconfigurationinformation(&config);
 
 send(currentuser->handle,createmessage[roomdir],strlen(roomdir),0);
 databaseupdated=TRUE;                  /* update database flag */
@@ -473,11 +482,14 @@ int setobjectattributes(user *currentuser,char *object,char *attr) {
  int found=FALSE;
  char *b;
  char *buf[BUF_SIZE];
+ CONFIG config;
+
+ getconfigurationinformation(&config);
 
  currentroom=currentuser->roomptr;
 
  if(currentuser->status < WIZARD) {            /* need to be wizard or higher level to change attributes */
-  send(currentuser->handle,notyet,strlen(notyet),0);
+  display_error(currentuser->handle,NOT_YET);
   return;
  }
 
@@ -491,12 +503,12 @@ cpc=tokenize_line(attr,cb," \009");			/* tokenize line */
 
    if(currentuser->status < ARCHWIZARD) {
     if((strcmp(objnext->owner,currentuser->name) == 0) && (objnext->attr & OBJECT_MOVEABLE_PUBLIC) == 0) {
-     send(currentuser->handle,pd,strlen(pd),0);
+     display_error(currentuser->handle,ACCESS_DENIED);
      return;
     }
 
     if((strcmp(objnext->owner,currentuser->name) == 0) && (objnext->attr & OBJECT_MOVEABLE_OWNER) == 0) {
-     send(currentuser->handle,pd,strlen(pd),0);
+     display_error(currentuser->handle,ACCESS_DENIED);
      return;
     }
    }
@@ -605,7 +617,7 @@ cpc=tokenize_line(attr,cb," \009");			/* tokenize line */
  }
 
 
- for(count=0;count<roomcount;count++) {
+ for(count=0;count<config.roomcount;count++) {
   if(regexp(rooms[count].name,object) == TRUE) {		/* found room */
    b=cb[count];
 
@@ -705,7 +717,7 @@ cpc=tokenize_line(attr,cb," \009");			/* tokenize line */
 }
 
 
-if(found == FALSE) send(currentuser->handle,noobject,strlen(noobject),0);		/* object not found */
+if(found == FALSE)  display_error(currentuser->handle,OBJECT_NOT_FOUND);  
 return;
 }
 
@@ -717,18 +729,21 @@ int setowner(user *currentuser,char *o,char *n) {
  roomobject *objnext;
  room *currentroom;
  int count;
+ CONFIG config;
+
+ getconfigurationinformation(&config);
 
  currentroom=currentuser->roomptr;
 
  if(currentuser->status < WIZARD) {             /* can't do this unless wizard of higher level */
-  send(currentuser->handle,notyet,strlen(notyet),0);
+  display_error(currentuser->handle,NOT_YET);
   return;
  }
  
  if(currentuser->status <ARCHWIZARD) {
 
   if(strcmp(n,currentuser->name) == 0) {                    /* unless archwizard, or higher, must be object's owner to modify */
-   send(currentuser->handle,pd,strlen(pd),0);
+   display_error(currentuser->handle,ACCESS_DENIED);
    return;
   } 
  }
@@ -753,11 +768,11 @@ while(objnext != NULL) {
  * not object, find room to change owner
  */
 
-for(count=0;count<roomcount;count++) {
+for(count=0;count<config.roomcount;count++) {
  if(rooms[count].room == atoi(o)) {		/* if object found */
 
   if(currentuser->status < ARCHWIZARD && strcmp(rooms[count].owner,currentuser->name) != 0) {	/* permission denied */
-   send(currentuser->handle,pd,strlen(pd),0);
+   display_error(currentuser->handle,ACCESS_DENIED);
    return;
   }
 
@@ -769,7 +784,7 @@ for(count=0;count<roomcount;count++) {
 
 }
 		
-send(currentuser->handle,noobject,strlen(noobject),0);		/* object not found */
+display_error(currentuser->handle,OBJECT_NOT_FOUND);  
 return;
 }
 
@@ -787,16 +802,19 @@ char *buf[BUF_SIZE];
 int foundroom=FALSE;
 int found=FALSE;
 int count;
+CONFIG config;
+
+getconfigurationinformation(&config);
 
 currentroom=currentuser->roomptr;
 
 if(currentuser->status < WIZARD) {      /* not wizard */
- send(currentuser->handle,notyet,strlen(notyet),0);
+ display_error(currentuser->handle,NOT_YET);
  return;
 }
 
-if(roomcount > currentroom->room) {			/* can't find room */
- send(currentuser->handle,noroom,strlen(noroom),0);
+if(config.roomcount > currentroom->room) {			/* can't find room */
+ display_error(currentuser->handle,BAD_ROOM);  
  return;
 }
 
@@ -808,12 +826,12 @@ while(objnext != NULL) {
     if(regexp(objnext->name,o) == TRUE ) {				/* if object matches */
 	  if(currentuser->status < ARCHWIZARD) {
    	   if((strcmp(currentroom->owner,currentuser->name) == 0) && (currentroom->attr & OBJECT_MOVEABLE_PUBLIC) == 0) {
-	    send(currentuser->handle,pd,strlen(pd),0);
+	    display_error(currentuser->handle,ACCESS_DENIED);
 	    return;
 	   }
 
 	   if((strcmp(currentroom->owner,currentuser->name) == 0) && (currentroom->attr & OBJECT_MOVEABLE_OWNER) == 0) {
-	    send(currentuser->handle,pd,strlen(pd),0);
+	    display_error(currentuser->handle,ACCESS_DENIED);
 	    return;
  	   }
 	 }
@@ -825,8 +843,7 @@ while(objnext != NULL) {
 	  destobj->next=calloc(1,sizeof( roomobject));	/* allocate objects */ 
 
 	  if(destobj->next == NULL) {		/* can't allocate */
-	   strcpy(buf,"Cant drop objects - no memory\r\n");
-	   send(currentuser->handle,buf,strlen(buf),0);
+	   display_error(currentuser->handle,NO_MEM);  
 	   return;	
 	  }
 
@@ -838,8 +855,7 @@ while(objnext != NULL) {
 	  destobj=destroom->roomobjects;
 
 	  if(destobj == NULL) {		/* can't allocate */
-	   strcpy(buf,"Can't move objects - no memory\r\n");
-	   send(currentuser->handle,buf,strlen(buf),0);
+	   display_error(currentuser->handle,NO_MEM);  
 	   return;	
 	  }
        }
@@ -863,7 +879,7 @@ while(objnext != NULL) {
   if(regexp(usernext->name,o) == TRUE && usernext->loggedin == TRUE) {       /* if object matches */
 
    if(currentuser->status < usernext->status) {  /* can't move user unless wizard or higher level */
-    send(currentuser->handle,notyet,strlen(notyet),0);
+    display_error(currentuser->handle,NOT_YET);
     return;
    }
 
@@ -886,7 +902,8 @@ if(c == '#') {
  found=TRUE;
 }
 
-if(found == FALSE) send(currentuser->handle,noobject,strlen(noobject),0);		/* unknown object */
+if(found == FALSE)  display_error(currentuser->handle,OBJECT_NOT_FOUND);  
+
 return;
 }
 
@@ -904,6 +921,9 @@ int resetobjects(void) {
  int gencount;
  int count;
  int countx;
+ CONFIG config;
+
+ getconfigurationinformation(&config);
 
  getcwd(resetconf,BUF_SIZE);
  strcat(resetconf,resetrel);
@@ -927,7 +947,7 @@ int resetobjects(void) {
  */
 
 
- for(count=0;count<roomcount;count++) {
+ for(count=0;count<config.roomcount;count++) {
 
   if((rooms[count].attr & ROOM_HAVEN) == 0) {          /* not haven */
 
@@ -1047,14 +1067,14 @@ if(currentuser->status < ARCHWIZARD) {
  if(strcmp(currentroom->owner,currentuser->name) == 0) {
 
 	   if((currentroom->attr & ROOM_CREATE_OWNER) == 0) {
-	    send(currentuser->handle,notthere,strlen(notthere),0);
+	    display_error(currentuser->handle,CANT_CREATE_OBJECTS_HERE);  
 	    return;
 	   }
 
   else
   {
 	   if((currentroom->attr & ROOM_CREATE_PUBLIC) == 0) {
-	    send(currentuser->handle,notthere,strlen(notthere),0);
+	    display_error(currentuser->handle,CANT_CREATE_OBJECTS_HERE);  
 	    return;
 	   }
   }
@@ -1077,8 +1097,7 @@ if(currentuser->status < ARCHWIZARD) {
    roomobj=currentroom->roomobjects;
 
    if(roomobj == NULL) {		/* can't allocate */
-    strcpy(buf,"Can't drop objects - no memory\r\r\n");
-    send(currentuser->handle,buf,strlen(buf),0);
+    display_error(currentuser->handle,NO_MEM);  
     return;	
    }
   }
@@ -1094,8 +1113,7 @@ if(currentuser->status < ARCHWIZARD) {
 	   roomobj=currentroom->roomobjects;
 
 	   if(roomobj == NULL) {		/* can't allocate */
-	    strcpy(buf,"Can't drop objects - no memory\r\r\n");
-	    send(currentuser->handle,buf,strlen(buf),0);
+	    display_error(currentuser->handle,NO_MEM);  	
 	    return;	
 	   }
           }
@@ -1128,7 +1146,7 @@ if(currentuser->status < ARCHWIZARD) {
   obj=obj->next;
  }
 
- if(found == FALSE) send(currentuser->handle,noobject,strlen(noobject),0);	/* not found */
+ if(found == FALSE) display_error(currentuser->handle,OBJECT_NOT_FOUND);  	/* not found */
  return;
 }
 
@@ -1144,7 +1162,7 @@ int createobject(user *currentuser,char *objname) {
  currentroom=currentuser->roomptr;
 
 if(currentuser->status < WIZARD) {         /* can't create object unless wizard level or above */
- send(currentuser->handle,notyet,strlen(notyet),0);
+ display_error(currentuser->handle,NOT_YET);
  return;
 }
 
@@ -1154,7 +1172,7 @@ if(currentuser->status < WIZARD) {         /* can't create object unless wizard 
 
 if(currentuser->status < ARCHWIZARD) {
  if((strcmp(currentroom->owner,currentuser->name) !=0) && (currentroom->attr  & ROOM_CREATE_PUBLIC) == 0 && currentuser->status < ARCHWIZARD) {
-  send(currentuser->handle,pd,strlen(pd),0);
+  display_error(currentuser->handle,ACCESS_DENIED);
   return;
  }
 
@@ -1163,7 +1181,7 @@ if(currentuser->status < ARCHWIZARD) {
  */
 
  if((strcmp(currentroom->owner,currentuser->name) == 0) && (currentroom->attr  & ROOM_CREATE_OWNER) == 0 && currentuser->status < ARCHWIZARD) {
-  send(currentuser->handle,pd,strlen(pd),0);
+  display_error(currentuser->handle,ACCESS_DENIED);
   return;
  }
 }
@@ -1177,7 +1195,7 @@ if(currentuser->status < ARCHWIZARD) {
  while(objnext != NULL) {
  
   if(strcmp(objname,objnext->name) == 0) {
-   send(currentuser->handle,objectexists,strlen(objectexists),0);
+   display_error(currentuser->handle,OBJECT_EXISTS);  
    return;
   }
 
@@ -1189,8 +1207,7 @@ if(currentuser->status < ARCHWIZARD) {
   currentroom->roomobjects=calloc(1,sizeof(roomobject));		/* add link to end */
 
   if(currentroom->roomobjects == NULL) {		/* can't allocate */
-   sprintf(buf,"can't create object: %s\r\n",strerror(errno));
-   send(currentuser->handle,buf,strlen(buf),0);
+   display_error(currentuser->handle,NO_MEM);  
    return;
   }
 
@@ -1205,8 +1222,7 @@ if(currentuser->status < ARCHWIZARD) {
 
  objnext->next=calloc(1,sizeof(roomobject));
   if(objnext == NULL) {		/* can't allocate */
-   sprintf(buf,"can't create object %s\r\n",objname);
-   send(currentuser->handle,buf,strlen(buf),0);
+   display_error(currentuser->handle,NO_MEM);  
    return;
   }
 
@@ -1238,7 +1254,7 @@ room *currentroom;
 currentroom=currentuser->roomptr;
 
 if(currentuser->status < WIZARD) {             /* can't do this unless wizard of higher level */
- send(currentuser->handle,notyet,strlen(notyet),0);
+ display_error(currentuser->handle,NOT_YET);
  return;
 }
 
@@ -1260,7 +1276,7 @@ while(objnext != NULL) {
 
  if(currentuser->status < ARCHWIZARD) {
   if((strcmp(objnext->owner,currentuser->name) != 0) && (objnext->attr & OBJECT_DELETE_PUBLIC) == 0) {
-   send(currentuser->handle,pd,strlen(pd),0);
+   display_error(currentuser->handle,ACCESS_DENIED);
    return;
   }
 
@@ -1269,7 +1285,7 @@ while(objnext != NULL) {
  */
 
   if((strcmp(objnext->owner,currentuser->name) == 0) && (objnext->attr & OBJECT_DELETE_OWNER) == 0) {
-   send(currentuser->handle,pd,strlen(pd),0);
+   display_error(currentuser->handle,ACCESS_DENIED);
    return;
   }
  }
@@ -1305,7 +1321,7 @@ while(objnext != NULL) {
  objnext=objnext->next;
 }
 
- send(currentuser->handle,noobject,strlen(noobject),0);            /* object not found */
+ display_error(currentuser->handle,OBJECT_NOT_FOUND);  
  return;
 }
 
@@ -1318,7 +1334,7 @@ room *currentroom;
 currentroom=currentuser->roomptr;
 
 if(currentuser->status < WIZARD) {		/* can't do this yet */
- send(currentuser->handle,notyet,strlen(notyet),0);
+ display_error(currentuser->handle,NOT_YET);
  return;
 }
 
@@ -1348,14 +1364,14 @@ objnext=currentroom->roomobjects;
 /* is owner but can't rename */
 
     if(strcmp(objnext->owner,currentuser->next) == 0 && (objnext->attr & OBJECT_RENAME_OWNER) == 0) {
-     send(currentuser->handle,pd,strlen(pd),0);
+     display_error(currentuser->handle,ACCESS_DENIED);
      return;
     }
 
 /* not owner and can't rename */
 
     if(strcmp(objnext->owner,currentuser->next) != 0 && (objnext->attr & OBJECT_RENAME_PUBLIC) == 0) {
-     send(currentuser->handle,pd,strlen(pd),0);
+     display_error(currentuser->handle,ACCESS_DENIED);
      return;
     }
    }
@@ -1367,7 +1383,7 @@ objnext=currentroom->roomobjects;
   objnext=objnext->next;
  }
 
-send(currentuser->handle,noobject,strlen(noobject),0);	/* no such object */
+display_error(currentuser->handle,OBJECT_NOT_FOUND);  
 return;
 }
 
@@ -1515,7 +1531,7 @@ for(count=0;count<currentroom->monstercount;count++) {
 
 /* can't find it, so output error message and exit */
 
-if(found == FALSE) send(currentuser->handle,noobject,strlen(noobject),0);
+if(found == FALSE) display_error(currentuser->handle,OBJECT_NOT_FOUND);  
 }
 
 
@@ -1575,8 +1591,11 @@ user *usernext;
 roomobject *roomobject;
 room *currentroom;
 int count;
+CONFIG config;
 
- currentroom=currentuser->roomptr;
+getconfigurationinformation(&config);
+
+currentroom=currentuser->roomptr;
 
 if(strcmp(o,"me") == 0) {                           /* if setting description for self */
  updateuser(currentuser,currentuser->name,"",0,0,d,0,currentuser->staminapoints,0,0,"","",0);
@@ -1593,7 +1612,7 @@ if(strcmp(o,"me") == 0) {                           /* if setting description fo
   if(regexp(usernext->name,o) == TRUE) {		/* found user */
 
 	  if(currentuser->status < WIZARD) {  /* can't change other user's description unless you are wizard or higher */
-   	   send(currentuser->handle,notyet,strlen(notyet),0);
+   	   display_error(currentuser->handle,NOT_YET);
 	   return;
 	  }
 
@@ -1616,14 +1635,14 @@ if(strcmp(o,"me") == 0) {                           /* if setting description fo
 
 	if(currentuser->status < ARCHWIZARD) {
   	 if((strcmp(rooms[count].owner,currentuser->name) == 0) && (roomobject->attr & OBJECT_RENAME_OWNER) == 0) {
-	  send(currentuser->handle,pd,strlen(pd),0);
+	  display_error(currentuser->handle,ACCESS_DENIED);
 	  return;
 	 }
 
 	/* if not owner and OBJECT_RENAME_PUBLIC attribute not set, then display error        */
 
   	 if((strcmp(rooms[count].owner,currentuser->name) != 0) && (roomobject->attr & OBJECT_RENAME_PUBLIC) == 0) {
-	  send(currentuser->handle,pd,strlen(pd),0);
+	  display_error(currentuser->handle,ACCESS_DENIED);
 	  return;
 	 }
         }
@@ -1640,14 +1659,14 @@ if(strcmp(o,"me") == 0) {                           /* if setting description fo
 if(strcmp(o,"here") == 0) {                           /* if setting description for room */
 	if(currentuser->status < ARCHWIZARD) {
   	 if((strcmp(rooms[count].owner,currentuser->name) == 0) && (roomobject->attr & OBJECT_RENAME_OWNER) == 0) {
-	  send(currentuser->handle,pd,strlen(pd),0);
+	  display_error(currentuser->handle,ACCESS_DENIED);
 	  return;
 	 }
 
 	/* if not owner and OBJECT_RENAME_PUBLIC attribute not set, then display error        */
 
   	 if((strcmp(rooms[count].owner,currentuser->name) != 0) && (roomobject->attr & OBJECT_RENAME_PUBLIC) == 0) {
-	  send(currentuser->handle,pd,strlen(pd),0);
+	  display_error(currentuser->handle,ACCESS_DENIED);
 	  return;
 	 }
 	}
@@ -1661,18 +1680,18 @@ if(strcmp(o,"here") == 0) {                           /* if setting description 
  * set room description
  */
 
-for(count=0;count<roomcount;count++) {
+for(count=0;count<config.roomcount;count++) {
   if(regexp(rooms[count].name,o) == TRUE) {                    /* found object */
 	if(currentuser->status < ARCHWIZARD) {
   	 if((strcmp(rooms[count].owner,currentuser->name) == 0) && (roomobject->attr & OBJECT_RENAME_OWNER) == 0) {
-	  send(currentuser->handle,pd,strlen(pd),0);
+	  display_error(currentuser->handle,ACCESS_DENIED);
 	  return;
 	 }
 
 	/* if not owner and OBJECT_RENAME_PUBLIC attribute not set, then display error        */
 
   	 if((strcmp(rooms[count].owner,currentuser->name) != 0) && (roomobject->attr & OBJECT_RENAME_PUBLIC) == 0) {
-	  send(currentuser->handle,pd,strlen(pd),0);
+	  display_error(currentuser->handle,ACCESS_DENIED);
 	  return;
 	 }
 	}
@@ -1684,8 +1703,15 @@ for(count=0;count<roomcount;count++) {
 
 }
 
-send(currentuser->handle,noobject,strlen(noobject),0);
+display_error(currentuser->handle,OBJECT_NOT_FOUND);  
 return;
 }
 
+int setdatabaseupdatedflag(void) {
+ databaseupdated=TRUE;
+}
+
+int cleardatabaseupdatedflag(void) {
+ databaseupdated=FALSE;
+}
 

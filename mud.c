@@ -24,50 +24,30 @@
 #include <stdio.h>
 #include <unistd.h>
 
-#include "defs.h"
+#include "defines.h"
 
 #define  MAX_BACKLOG 14
 
 char *banconf[BUF_SIZE];
 ban *bans=NULL;
 
-extern char *mudserver[BUF_SIZE];
-extern int mudport;
-extern int objectresettime;
-extern int databaseresettime;
-extern int userresettime;
-extern int configsavetime;
-extern char *isbuf;
-extern int issuecount;
-extern int allownewaccounts;
 extern user *users;
 extern race *races;
 extern class *classes;
 
-char *mudnomem="mud:out of memory\n";
-char *noobject="Object not found\r\n";
-char *notyet="You can't do that yet\r\n";
-char *usernamerequired="Username is required\r\n";
-char *userexists="That username already exists\r\n";
 char *newpassprompt="Enter a password:";
 char *genderprompt="Gender [enter 'male' or 'female']:";
-char *badcreategender="Gender must be either male or female\r\n";
 char *descprompt="Enter a description for yourself:";
 char *chooserace="Choose a player race\r\n\r\n";
-char *unknownclass="Unknown player class\r\n";
 char *chooseclass="Choose a player class\r\n\r\n";
 char *classprompt="Enter player class:";
-char *badrace="Unknown race\r\n";
-char *nopass="You must enter a password\r\n";
 char *chooseplayerclass="Choose a player class\r\n";
 char *chooseplayerrace="Choose a player race:\r\nName\t\Magic\t\Strength\t\Agility\tDexterity\tLuck\tWisdon\tIntelligence\tStamina\r\n";
 char *raceprompt="Enter player race:";
 char *newuserprompt="Enter new username:";
 char *promptnewaccount="Enter username [type 'new' to create a new account]:";
 char *userprompt="Enter username:";
-char *banmsg="User BANNED\r\n";
 char *passprompt="Enter password:";
-char *loginbad="Invalid login\r\n";
 
 struct {
  char *temp[BUF_SIZE];
@@ -102,6 +82,7 @@ user *usernext;
 char *temp[BUF_SIZE];
 struct timeval tv;
 time_t o,d,u,c,currenttime;
+CONFIG config;
 
 #ifdef WIN32
  WSADATA wsadata;
@@ -110,6 +91,8 @@ time_t o,d,u,c,currenttime;
 printf("AdventureMUD Version %d.%d\n",MAJOR_VERSION,MINOR_VERSION);
 
 getconfig();				  /* get configuration */
+
+getconfigurationinformation(&config);
 
 #ifdef _WIN32				/* windows needs  wsastartup */
 if(WSAStartup(MAKEWORD(2,2), &wsadata) != 0) {
@@ -145,7 +128,7 @@ if(bind(ls,&service,sizeof(service)) == -1) { 		/* bind to socket  */
 
 /* loop and accept connections */
 
-printf("Waiting for connections on %s port %d\n",mudserver,mudport);
+printf("Waiting for connections on %s port %d\n",config.mudserver,config.mudport);
 
 if(listen(ls,MAX_BACKLOG) == -1) {			/* listen on socket  */
   printf("mud: Unable to listen on socket\n");
@@ -158,16 +141,16 @@ FD_SET(ls,&currentset);
 maxsocket=ls;			/* maximum socket */
 
 time(&o);			/* set times */
-o=o+objectresettime;
+o=o+config.objectresettime;
 
 time(&d);
-d=d+databaseresettime;
+d=d+config.databaseresettime;
 
 time(&u);
-u=u+userresettime;
+u=u+config.userresettime;
 
 time(&c);
-c=c+configsavetime;
+c=c+config.configsavetime;
 
 	
 while(1) {
@@ -177,8 +160,8 @@ while(1) {
   printf("mud: Updating objects\n");
   resetobjects();
 
-  time(o);			/* set times */
-  o=o+objectresettime;
+  time(&o);			/* set times */
+  o=o+config.objectresettime;
  }
 
  if(currenttime > d) {		/* update database */
@@ -187,25 +170,25 @@ while(1) {
   updatedatabase();
 	
   time(&d);			/* set times */
-  d=d+databaseresettime;
+  d=d+config.databaseresettime;
  }
 
- if(currenttime > userresettime) {	/* update users */
+ if(currenttime > u) {	/* update users */
   printf("mud: Saving users\n");
 
   updateusersfile();
 
   time(&u);			/* set times */
-  u=u+userresettime;
+  u=u+config.userresettime;
  }
 
  if(currenttime > c) {		/* update config */
   printf("mud: Updating configuration\n");
 
-  updateconfiguration();
+  updateconfiguration(config);
 
   time(&c);			/* set times */
-  c=c+configsavetime;
+  c=c+config.configsavetime;
  }
 
  movemonster();
@@ -240,14 +223,15 @@ for(count=0;count <= maxsocket && retval > 0;count++) {		/* search sockets */
 	     	strcpy(ipaddress,inet_ntoa(clientip.sin_addr));
 	
 	     	if(checkban(ipaddress) == TRUE) { /* check if banned */
-	      	 send(as,banmsg,strlen(banmsg),0);
+		 display_error(as,USER_BANNED);
 		 FD_CLR(as,&currentset);
 	         close(as);
 	        }
 
-	        send(as,isbuf,issuecount,0);  	
+		printf("config=%s",config.isbuf);
+	        send(as,config.isbuf,config.issuecount,0);  	
 
-       		if(allownewaccounts == TRUE) {
+       		if(config.allownewaccounts == TRUE) {
                       send(as,promptnewaccount,strlen(promptnewaccount),0);  	
 		}
 		else
@@ -282,7 +266,7 @@ for(count=0;count <= maxsocket && retval > 0;count++) {		/* search sockets */
 	   switch(connections[count].connectionstate) {
 
 	     case STATE_GETUSER:			/* prompt for user name */
-		if(allownewaccounts == TRUE) {
+		if(config.allownewaccounts == TRUE) {
 	               send(count,promptnewaccount,strlen(promptnewaccount),0);  	
 		}
 		else
@@ -297,7 +281,7 @@ for(count=0;count <= maxsocket && retval > 0;count++) {		/* search sockets */
              case STATE_GETPASSWORD:			/* prompt for password */
 			strcpy(connections[count].uname,connections[count].buf);
 
-	               if(strcmp(connections[count].uname,"new") == 0 && allownewaccounts == TRUE) {   /* create new account if allowed */
+	               if(strcmp(connections[count].uname,"new") == 0 && config.allownewaccounts == TRUE) {   /* create new account if allowed */
  	      	 	 send(count,newuserprompt,strlen(newuserprompt),0);
 	 		 connections[count].connectionstate=STATE_GETNEWPASS; 
 			}
@@ -317,7 +301,8 @@ for(count=0;count <= maxsocket && retval > 0;count++) {		/* search sockets */
 			}
 			else
 			{
-			 send(count,loginbad,strlen(loginbad),0);
+			 display_error(count,INVALID_LOGIN);
+
 			 connections[count].connectionstate=STATE_GETUSER;
 			 break;
 			}
@@ -350,7 +335,8 @@ for(count=0;count <= maxsocket && retval > 0;count++) {		/* search sockets */
 
 		        while(usernext != NULL) {		/* check if name exists */
 			 if(strcmp(usernext->name,connections[count].buf) == 0) {
-			  send(count,userexists,strlen(userexists),0);
+
+ 			  display_error(count,USERNAME_EXISTS);
 			  send(count,newuserprompt,strlen(newuserprompt),0);
 	  	          connections[count].connectionstate=STATE_GETNEWPASS; /* stay in state */	
 			  goto badbreak;
@@ -369,7 +355,8 @@ for(count=0;count <= maxsocket && retval > 0;count++) {		/* search sockets */
 
 	   case STATE_GETGENDER:			/* get gender */
 			if(!*connections[count].buf) {
-			 send(count,nopass,strlen(nopass),0);
+			 display_error(count,NO_PASSWORD);
+
     	      	         send(count,newpassprompt,strlen(newpassprompt),0);
 
 		         connections[count].connectionstate=STATE_GETGENDER; /* loop state */
@@ -387,7 +374,9 @@ for(count=0;count <= maxsocket && retval > 0;count++) {		/* search sockets */
 			if(strcmp(connections[count].buf,"female") == 0) connections[count].gender=FEMALE;
 			
 			if(connections[count].gender != MALE  && connections[count].gender != FEMALE) {
-			 send(count,badcreategender,strlen(badcreategender),0);
+
+			 display_error(count,BAD_GENDER);
+
 			 send(count,genderprompt,strlen(genderprompt),0);
 
 			 connections[count].connectionstate=STATE_GETDESC; /* stay on current */
@@ -437,7 +426,8 @@ for(count=0;count <= maxsocket && retval > 0;count++) {		/* search sockets */
 			}
 	
 			if(racenext == NULL) {
-			 send(count,badrace,strlen(badrace),0);
+		         display_error(count,BAD_RACE);
+
 	 		 send(count,raceprompt,strlen(raceprompt),0);
 			 connections[count].connectionstate=STATE_GETCLASS; /* go to current state */
 			 break;
@@ -475,12 +465,14 @@ for(count=0;count <= maxsocket && retval > 0;count++) {		/* search sockets */
 		
 			if(classnext == NULL) {		/* class not found, go back to state #14 */
 			 connections[count].connectionstate=STATE_CREATEUSER;
-			 send(count,unknownclass,strlen(unknownclass),0);
+
+		         display_error(count,BAD_CLASS);
 			 send(count,classprompt,strlen(classprompt),0);
 
 			 break;
                         }
 
+			
 			if(createuser(count,connections[count].uname,connections[count].upass,\
 			connections[count].gender,connections[count].description,connections[count].race,\
 			connections[count].class) == -1) {	/* can't create account */
@@ -489,8 +481,6 @@ for(count=0;count <= maxsocket && retval > 0;count++) {		/* search sockets */
 			  FD_CLR(count,&readset);
 			  close(count);
 			 }
-
-			printf("abc 5\n");
 
 			usernext=users;
 

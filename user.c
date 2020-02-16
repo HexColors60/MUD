@@ -25,30 +25,14 @@
 
 #include <crypt.h>
 
-#include "defs.h"
+#include "defines.h"
 
 user *users=NULL;
-extern char *notyet[BUF_SIZE];		/* defined in mud.c */
-extern char *noobject[BUF_SIZE];
 
-extern int pointsforwarrior;		/* defined in getconfig.c */
-extern int pointsforhero;
-extern int pointsforchampion;
-extern int pointsforsuperhero;
-extern int pointsforenchanter;
-extern int pointsforsorceror;
-extern int pointsfornecromancer;
-extern int pointsforlegend;
-extern int pointsforwizard;
 extern race *races;
 extern class *classes;
 
-extern int databaseupdated;		/* defined in database.c */
 extern room *rooms;
-extern int lastroom;
-extern char *noroom[BUF_SIZE];
-extern char *pd[BUF_SIZE];
-extern char *weakpass[BUF_SIZE];
 extern monster *monsters;		/* defined in monster.c */
 extern ban *bans;			/* defined in ban.c */
 
@@ -59,24 +43,15 @@ extern ban *bans;			/* defined in ban.c */
 			  "Necromanceress","Legend","Witch","Arch Witch","Dungeon Mistress" };
 
 char *banconf[BUF_SIZE];
-char *ipalreadybanned="User already banned\r\n";
 char *banlistprompt="Press ENTER to see more bans or q to quit:";
 char *banrel="/config/ban.mud";
 char *classconf[BUF_SIZE];
 char *classrel="/config/classes.mud";
 char *userrel="/config/users.mud";
 char *nouser="Unknown user\r\n";
-char *playagain="Play again (y/n?)";
 char *racerel="/config/races.mud";
 char *usersconf[BUF_SIZE];
-char *evillevel="Level can't be > 12\r\n";
-char *sillylevel="Level can't be 0\r\n";
-char *levelisbad="Level can't be higher than your own level\r\n";
-char *cantgothatway="You can't go that way\r\n";
 char *resetconf[BUF_SIZE];
-char *badgender="Invalid gender\r\n";
-char *nokill="This person cannot be killed\r\n";
-char *gameover="GAME OVER. You have 0 stamina points and are dead.\r\n";
 int userupdated;
 
 int userban(user *currentuser,char *username) {
@@ -86,7 +61,7 @@ int userban(user *currentuser,char *username) {
  char *b;
 
  if(currentuser->status < WIZARD) {		/* not yet */
-  send(currentuser->handle,notyet,strlen(notyet),0);
+  display_error(currentuser->handle,NOT_YET);
   return;
  }
 
@@ -103,7 +78,7 @@ int userban(user *currentuser,char *username) {
   usernext=usernext->next;
  }
 
- send(currentuser->handle,nouser,strlen(nouser),0);
+ display_error(currentuser->handle,UNKNOWN_USER);
  return;
 }
 
@@ -114,7 +89,7 @@ ban *banlist;
 char *buf[BUF_SIZE];
 
 if(currentuser->status < WIZARD) {		/* not yet */
- send(currentuser->handle,notyet,strlen(notyet),0);
+ display_error(currentuser->handle,NOT_YET);
  return;
 }
 
@@ -123,8 +98,7 @@ banlist=bans;
 
 while(banlist != NULL) {
  if(*banlist->ipaddress && strcmp(banlist->ipaddress,ipaddr) == 0) {		/* ip address already banned */
-   send(currentuser->handle,ipalreadybanned,strlen(ipalreadybanned),0); 
-   return;
+  display_error(currentuser->handle,ALREADY_BANNED);
   }
 
  banlist=banlist->next;
@@ -136,8 +110,7 @@ while(banlist->next != NULL) banlist=banlist->next;
 
  banlist->next=calloc(1,sizeof(ban));	/* add new link */
  if(banlist->next == NULL) {		/* can't allocate */
-  strcpy(buf,"Can't ban - out of memory");
-  send(currentuser->handle,buf,strlen(buf),0);
+  display_error(currentuser->handle,NO_MEM);
   return;
  }
 
@@ -223,7 +196,7 @@ banlast=banlist;
  banlist=banlist->next;
 }
 
- send(currentuser->handle,nouser,strlen(nouser),0);
+ display_error(currentuser->handle,UNKNOWN_USER);
  return;
 }
 
@@ -319,7 +292,7 @@ int force(user *currentuser,char *u,char *c) {
 user *usernext;
 
  if(currentuser->status < WIZARD) {             /* can't do this unless wizard of higher level */
-  send(currentuser->handle,notyet,strlen(notyet),0);
+  display_error(currentuser->handle,NOT_YET);
   return;
  }
 
@@ -370,7 +343,7 @@ while(usernext != NULL) {
 }
 
 if(found == FALSE) {
- send(currentuser->handle,nouser,strlen(nouser),0);               /* user not found */
+ display_error(currentuser->handle,UNKNOWN_USER);
  return;
 }
 
@@ -391,8 +364,7 @@ while(ourobject != NULL) {
 
     	  objnext->next=calloc(1,sizeof(roomobject));
 	  if(objnext->next == NULL) {		/* can't allocate */
-	   strcpy(buf,"Can't give object - no memory\r\n");
-	   send(currentuser->handle,buf,strlen(buf),0);
+	   display_error(currentuser->handle,NO_MEM);
 	   return;	
 	  }
 
@@ -404,8 +376,7 @@ while(ourobject != NULL) {
     	  objnext=usernext->carryobjects;
 
 	  if(objnext == NULL) {		/* can't allocate */
-	   strcpy(buf,"Can't give object - no memory\r\n");
-	   send(currentuser->handle,buf,strlen(buf),0);
+	   display_error(currentuser->handle,NO_MEM);
 	   return;	
 	  }
 	 }    
@@ -436,7 +407,7 @@ while(ourobject != NULL) {
   ourobject=ourobject->next;
  }
 
-if(objfound == FALSE)  send(currentuser->handle,nouser,strlen(nouser),0);			/* no object found */
+if(objfound == FALSE) display_error(currentuser->handle,UNKNOWN_USER); /* no object found */
 }
 
 /*
@@ -458,7 +429,7 @@ int inventory(user *currentuser,char *u) {
  {
 
   if(currentuser->status < WIZARD) {		/* can't do this yet */
-   send(currentuser->handle,notyet,strlen(notyet),0);
+   display_error(currentuser->handle,NOT_YET);
    return;
   }
 
@@ -515,7 +486,7 @@ room *currentroom;
 currentroom=currentuser->roomptr;
 
 if(currentuser->status < WIZARD) {             /* can't do this unless wizard of higher level */
- send(currentuser->handle,notyet,strlen(notyet),0);
+display_error(currentuser->handle,NOT_YET);
  return;
 }
 
@@ -525,9 +496,10 @@ while(usernext != NULL) {
   found=TRUE;
 
   if(currentuser->status < usernext->status ) {  /* wizards can't be killed */
-   send(currentuser->handle,nokill,strlen(nokill),0);
+   display_error(currentuser->handle,KILL_WIZARD);
    return;
   }
+
   if(usernext->gender == MALE) {
    sprintf(buf,"You were given the finger of death by %s the %s\r\n",currentuser->name,maleusertitles[currentuser->status]);
   }
@@ -573,7 +545,7 @@ usernext=usernext->next;
  monsternext=monsternext->next;
 }
 
-if(found == FALSE) send(currentuser->handle,nouser,strlen(nouser),0);	/* unknown user */
+if(found == FALSE)  display_error(currentuser->handle,UNKNOWN_USER); /* unknown user */
 return;
 }
 
@@ -633,7 +605,7 @@ if(!*u) {			/* find score for current user */
 else
 {
  if(currentuser->status < WIZARD) {		/* not yet */
-  send(currentuser->handle,notyet,strlen(notyet),0);
+  display_error(currentuser->handle,NOT_YET);
   return;
  }
 
@@ -668,7 +640,7 @@ while(usernext != NULL) {
 
 }
 
- if(found == FALSE) send(currentuser->handle,nouser,strlen(nouser),0);
+ if(found == FALSE)  display_error(currentuser->handle,UNKNOWN_USER);
  return;
 }
 /*
@@ -718,7 +690,7 @@ while(usernext != NULL) {
 }
 
 if(count > 0) {			/* unknown user */
- send(currentuser->handle,nouser,strlen(nouser),0);
+ display_error(currentuser->handle,UNKNOWN_USER);
  return;
 }
 
@@ -738,7 +710,7 @@ int  objfound=0;
 char *buf[BUF_SIZE];
 
 if(currentuser->status < WIZARD) {             /* can't do this unless wizard of higher level */
- send(currentuser->handle,notyet,strlen(notyet),0);
+ display_error(currentuser->handle,NOT_YET);
  return;
 }
 
@@ -759,7 +731,7 @@ while(usernext != NULL) {
 }
 
 if(found == FALSE) {
- send(currentuser->handle,nouser,strlen(nouser),0);               /* user not found */
+display_error(currentuser->handle,NOT_YET);
  return;
 }
 
@@ -780,8 +752,7 @@ while(objnext != NULL) {
 
     	  myobj->next=calloc(1,sizeof(roomobject));
 	  if(myobj->next == NULL) {		/* can't allocate */
-	   strcpy(buf,"Can't take object - no memory\r\n");
-	   send(currentuser->handle,buf,strlen(buf),0);
+	  display_error(currentuser->handle,NO_MEM);
 	   return;	
 	  }
 
@@ -793,8 +764,7 @@ while(objnext != NULL) {
     	  myobj=currentuser->carryobjects;
 
 	  if(myobj == NULL) {		/* can't allocate */
-	   strcpy(buf,"Can't take object - no memory\r\n");
-	   send(currentuser->handle,buf,strlen(buf),0);
+	  display_error(currentuser->handle,NO_MEM);
 	   return;	
 	  }
 	 
@@ -826,7 +796,7 @@ while(objnext != NULL) {
   objnext=objnext->next;
  }
 
-if(objfound == FALSE)  send(currentuser->handle,noobject,strlen(noobject),0);			/* no object found */
+if(objfound == FALSE)display_error(currentuser->handle,UNKNOWN_USER); /* no object found */
 }
 
 /*
@@ -844,12 +814,15 @@ int updateuser(user *currentuser,char *uname,char *upass,int uhome,int ulevel,ch
  race *racenext;
  class *classnext;
  char c;
+ CONFIG config;
 
  if(uhome < 0) uhome=0;			/* sanity check */
  if(ulevel < 0) ulevel=0;
  if(umpoints < 0) umpoints=0;
  if(ustapoints < 0) ustapoints=0;
  if(uexpoints < 0) uexpoints=0;
+
+ getconfigurationinformation(&config);
 
  usernext=users;
  while(usernext != NULL) {
@@ -878,7 +851,7 @@ int updateuser(user *currentuser,char *uname,char *upass,int uhome,int ulevel,ch
    if(usernext->staminapoints <= 0 && (usernext->status < WIZARD)) {
 
      usernext->loggedin=FALSE;
-     send(usernext->handle,gameover,strlen(gameover),0);
+    display_error(currentuser->handle,GAME_OVER);
 
      usernext->staminapoints=DEFAULT_STAMINAPOINTS;		/* reset user */
      usernext->magicpoints=DEFAULT_MAGICPOINTS;
@@ -897,16 +870,16 @@ int updateuser(user *currentuser,char *uname,char *upass,int uhome,int ulevel,ch
 /* adjust new level */
 
    if(uexpoints > 0) {
-    if(uexpoints < pointsforwarrior) newlevel=NOVICE;
-    if((uexpoints >= pointsforwarrior) && (uexpoints < pointsforhero)) newlevel=WARRIOR;
-    if((uexpoints >= pointsforhero) && (uexpoints < pointsforchampion)) newlevel=HERO;
-    if((uexpoints >= pointsforchampion) && (uexpoints < pointsforsuperhero)) newlevel=CHAMPION;
-    if((uexpoints >= pointsforsuperhero) && (uexpoints < pointsforenchanter)) newlevel=SUPERHERO;
-    if((uexpoints >= pointsforenchanter) && (uexpoints < pointsforsorceror)) newlevel=ENCHANTER;
-    if((uexpoints >= pointsforsorceror) && (uexpoints < pointsfornecromancer)) newlevel=SORCEROR;
-    if((uexpoints >= pointsfornecromancer) && (uexpoints < pointsforlegend)) newlevel=NECROMANCER;
-    if((uexpoints >= pointsforlegend) && (uexpoints < pointsforwizard)) newlevel=LEGEND;
-    if((uexpoints >= pointsforwizard)) newlevel=WIZARD;
+    if(uexpoints < config.pointsforwarrior) newlevel=NOVICE;
+    if((uexpoints >= config.pointsforwarrior) && (uexpoints < config.pointsforhero)) newlevel=WARRIOR;
+    if((uexpoints >= config.pointsforhero) && (uexpoints < config.pointsforchampion)) newlevel=HERO;
+    if((uexpoints >= config.pointsforchampion) && (uexpoints < config.pointsforsuperhero)) newlevel=CHAMPION;
+    if((uexpoints >= config.pointsforsuperhero) && (uexpoints < config.pointsforenchanter)) newlevel=SUPERHERO;
+    if((uexpoints >= config.pointsforenchanter) && (uexpoints < config.pointsforsorceror)) newlevel=ENCHANTER;
+    if((uexpoints >= config.pointsforsorceror) && (uexpoints < config.pointsfornecromancer)) newlevel=SORCEROR;
+    if((uexpoints >= config.pointsfornecromancer) && (uexpoints < config.pointsforlegend)) newlevel=NECROMANCER;
+    if((uexpoints >= config.pointsforlegend) && (uexpoints < config.pointsforwizard)) newlevel=LEGEND;
+    if((uexpoints >= config.pointsforwizard)) newlevel=WIZARD;
 
     if(newlevel > usernext->status || newlevel < usernext->status) {		/* new level */
      usernext->status=newlevel;
@@ -961,7 +934,7 @@ int updateuser(user *currentuser,char *uname,char *upass,int uhome,int ulevel,ch
   usernext=usernext->next;
 }
 
-databaseupdated=TRUE;                                /* flag database as updated */
+setdatabaseupdatedflag();
 return;
 }
 
@@ -1086,7 +1059,7 @@ while(usernext != NULL) {
   usernext=usernext->next;
  }
 
- send(currentuser->handle,nouser,strlen(nouser),0);		/* user not found */
+ display_error(currentuser->handle,UNKNOWN_USER);		/* user not found */
  return;
 }
 
@@ -1101,7 +1074,7 @@ int setlevel(user *currentuser,char *u,char *level) {
  int newlevel;
 
  if(currentuser->status < WIZARD) {     /* not wizard */
-  send(currentuser->handle,notyet,strlen(notyet),0);
+  display_error(currentuser->handle,NOT_YET);
   return;
  }
 
@@ -1119,12 +1092,12 @@ int setlevel(user *currentuser,char *u,char *level) {
 	   newlevel=atoi(buf);
 
 	   if(newlevel > 12) {
-	    send(currentuser->handle,evillevel,strlen(evillevel),0);
+ 	   display_error(currentuser->handle,INVALID_LEVEL);
 	    return;
 	   }
 
            if(newlevel > currentuser->status) {		/* can't set level above own level */
-            send(currentuser->handle,levelisbad,strlen(levelisbad),0);
+ 	   display_error(currentuser->handle,INVALID_LEVEL);
             return;
            }
 
@@ -1138,7 +1111,7 @@ int setlevel(user *currentuser,char *u,char *level) {
 	   newlevel=atoi(buf);
 
 	   if(newlevel < 0) {
-	    send(currentuser->handle,sillylevel,strlen(sillylevel),0);
+	   display_error(currentuser->handle,NO_MEM);
 	    return;
 	   }
 
@@ -1172,7 +1145,7 @@ int setlevel(user *currentuser,char *u,char *level) {
 int setgender(user *currentuser,char *u,char *gender) {
 
  if(currentuser->status < WIZARD) {		/* can't do this yet */
-  send(currentuser->handle,notyet,strlen(notyet),0);
+  display_error(currentuser->handle,NOT_YET);
   return;
  }
 
@@ -1186,7 +1159,7 @@ int setgender(user *currentuser,char *u,char *gender) {
   return;
  }
 
-send(currentuser->handle,badgender,strlen(badgender),0); 
+display_error(currentuser->handle,BAD_GENDER);
 return;
 }
 
@@ -1211,8 +1184,6 @@ strcat(raceconf,racerel);
  handle=fopen(raceconf,"rb");
  if(handle == NULL) {                                           /* couldn't open file */
   printf("mud: Can't open configuration file %s\n",raceconf);
-
-
 
   exit(NOCONFIGFILE);
  }
@@ -1494,7 +1465,7 @@ int visible(user *currentuser,char *name,int mode) {
  user *next=users;
 
  if(currentuser->status < WIZARD) {     /* not wizard */
-  send(currentuser->handle,notyet,strlen(notyet),0);
+  display_error(currentuser->handle,NOT_YET);
   return;
  }
 
@@ -1515,7 +1486,7 @@ int visible(user *currentuser,char *name,int mode) {
  next=next->next;
 }
 
- send(currentuser->handle,nouser,strlen(nouser),0);
+ display_error(currentuser->handle,UNKNOWN_USER);
 return;
 }
 
@@ -1523,7 +1494,7 @@ int gag(user *currentuser,char *name,int mode) {
  user *next=users;
 
  if(currentuser->status < WIZARD) {     /* not wizard */
-  send(currentuser->handle,notyet,strlen(notyet),0);
+  display_error(currentuser->handle,NOT_YET);
   return;
  }
 
@@ -1539,7 +1510,7 @@ int gag(user *currentuser,char *name,int mode) {
    }
 
    if(next == NULL) {
-    send(currentuser->handle,nouser,strlen(nouser),0);
+    display_error(currentuser->handle,UNKNOWN_USER);
     return;
    }
  }
@@ -1563,7 +1534,7 @@ user *usernext;
 char *buf[BUF_SIZE];
 
  if(currentuser->status < WIZARD) {		/* only wizard or higher users can send global message */
-  send(currentuser->handle,notyet,strlen(notyet),0);
+  display_error(currentuser->handle,NOT_YET);
   return;
  }
 
@@ -1625,7 +1596,7 @@ int who(user *currentuser,char *username) {
  usernext=usernext->next;
 }
  
-if(found == FALSE) send(currentuser->handle,nouser,strlen(nouser),0);	 /* unknown user */
+if(found == FALSE) display_error(currentuser->handle,UNKNOWN_USER);	 /* unknown user */
 return;
 }
 
@@ -1635,7 +1606,7 @@ int go(user *currentuser,int r) {
  char *buf[BUF_SIZE];
 
  if(r == 0) {		/* invalid room */
-  send(currentuser->handle,cantgothatway,strlen(cantgothatway),0);
+  display_error(currentuser->handle,BAD_DIRECTION);
   return;
  }
 
@@ -1645,7 +1616,7 @@ int go(user *currentuser,int r) {
  }
 
  if(rooms[r].attr & ROOM_PRIVATE) {
-  send(currentuser->handle,cantgothatway,strlen(cantgothatway),0);
+  display_error(currentuser->handle,BAD_DIRECTION);
   return;
  }	
 
@@ -1687,7 +1658,7 @@ while(usernext != NULL) {
  usernext=usernext->next;
 }
 
-if(found == FALSE) send(currentuser->handle,noobject,strlen(noobject),0);		/* object not found */
+if(found == FALSE) display_error(currentuser->handle,UNKNOWN_USER);	/* object not found */
 return;
 }
 
@@ -1707,16 +1678,19 @@ room *currentroom;
 char *buf[BUF_SIZE];
 int foundroom=FALSE;
 int found=FALSE;
+CONFIG config;
+
+getconfigurationinformation(&config);
 
 currentroom=currentuser->roomptr;
 
 if(currentuser->status < WIZARD) {      /* not wizard */
- send(currentuser->handle,notyet,strlen(notyet),0);
+ display_error(currentuser->handle,NOT_YET);
  return;
 }
 
-if(l > lastroom) {			/* can't find room */
- send(currentuser->handle,noroom,strlen(noroom),0);
+if(l > config.lastroom) {			/* can't find room */
+display_error(currentuser->handle,BAD_ROOM);
  return;
 }
 
@@ -1728,12 +1702,12 @@ while(objnext != NULL) {
     if(regexp(objnext->name,o) == 0 ) {				/* if object matches */
 	  if(currentuser->status < ARCHWIZARD) {
    	   if((strcmp(currentroom->owner,currentuser->name) == 0) && (currentroom->attr & OBJECT_MOVEABLE_PUBLIC) == 0) {
-	    send(currentuser->handle,pd,strlen(pd),0);
+	   display_error(currentuser->handle,ACCESS_DENIED);
 	    return;
 	   }
 
 	   if((strcmp(currentroom->owner,currentuser->name) == 0) && (currentroom->attr & OBJECT_MOVEABLE_OWNER) == 0) {
-	    send(currentuser->handle,pd,strlen(pd),0);
+	   display_error(currentuser->handle,ACCESS_DENIED);
 	    return;
  	   }
 	 }
@@ -1745,8 +1719,7 @@ while(objnext != NULL) {
 	  destobj->next=calloc(1,sizeof( roomobject));	/* allocate objects */ 
 
 	  if(destobj->next == NULL) {		/* can't allocate */
-	   strcpy(buf,"Cant drop objects - no memory\r\n");
-	   send(currentuser->handle,buf,strlen(buf),0);
+          display_error(currentuser->handle,NO_MEM);
 	   return;	
 	  }
 
@@ -1758,8 +1731,7 @@ while(objnext != NULL) {
 	  destobj=destroom->roomobjects;
 
 	  if(destobj == NULL) {		/* can't allocate */
-	   strcpy(buf,"Can't move objects - no memory\r\n");
-	   send(currentuser->handle,buf,strlen(buf),0);
+          display_error(currentuser->handle,NO_MEM);
 	   return;	
 	  }
        }
@@ -1771,6 +1743,7 @@ while(objnext != NULL) {
   }
   objnext=objnext->next;
  }
+
 
 /*
  * move player
@@ -1784,7 +1757,7 @@ while(objnext != NULL) {
   if(regexp(usernext->name,o) == 0 && usernext->loggedin == TRUE) {       /* if object matches */
 
    if(currentuser->status < usernext->status) {  /* can't move user unless wizard or higher level */
-    send(currentuser->handle,notyet,strlen(notyet),0);
+    display_error(currentuser->handle,NOT_YET);
     return;
    }
 
@@ -1796,7 +1769,7 @@ while(objnext != NULL) {
  usernext=usernext->next;
 }
 
-if(found == FALSE) send(currentuser->handle,noobject,strlen(noobject),0);		/* unknown object */
+if(found == FALSE) display_error(currentuser->handle,UNKNOWN_USER); /* unknown object */
 return;
 }
  

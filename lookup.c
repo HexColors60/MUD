@@ -38,8 +38,7 @@
  #include "winsock.h"
 #endif
 
-#include "defs.h"
-
+#include "defines.h"
 
 int address_lookup(char *address,char *buf) {
 struct hostent *he;

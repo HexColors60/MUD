@@ -37,8 +37,8 @@
  #include "winsock.h"
 #endif
 
-#include "defs.h"
-char *nohelp="Unknown help topic\r\n";
+#include "defines.h"
+
 char *helpprompt="-- Press any key to continue -- or type q to quit";
 
 int showhelp(user *currentuser,char *ht) {
@@ -61,7 +61,7 @@ else
 
 handle=fopen(buf,"rb");
 if(handle == NULL) {                 /* can't open file */
- send(currentuser->handle,nohelp,strlen(nohelp),0);
+ display_error(currentuser->handle,NO_HELP_TOPIC);  
  free(buf);
  return;
 }

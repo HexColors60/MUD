@@ -2,6 +2,8 @@
 #define TRUE	1
 #define FALSE 	0
 
+#define BUF_SIZE 255
+
 #define DEFAULT_STAMINAPOINTS  1000                               /* default number of stamina points */
 #define DEFAULT_MAGICPOINTS  1000                               /* default number of magic points */
 #define MONSTERGEN	10
@@ -115,9 +117,48 @@
 #define	UP			8
 #define DOWN			9
 
+#define NO_ERROR 	0	
+#define NO_MEM		1
+#define OBJECT_NOT_FOUND	2
+#define NOT_YET		3
+#define USERNAME_REQURED 4
+#define USERNAME_EXISTS 5
+#define BAD_GENDER	6
+#define BAD_CLASS	7
+#define BAD_RACE	8
+#define NO_PASSWORD	9
+#define USER_BANNED	10
+#define INVALID_LOGIN	11
+#define PVP_NOT_ALLOWED	12
+#define BAD_COMMAND	13
+#define NO_PARAMS 14
+#define INVALID_EXIT	15
+#define CANT_CREATE_OBJECTS_HERE 16
+#define OBJECT_EXISTS	17
+#define ROOM_NOT_FOUND	18
+#define CANT_CREATE_ROOM 19
+#define WEAK_PASSWORD	20
+#define SPELL_LEVEL_USER 21
+#define SPELL_NO_TARGET	22
+#define SPELL_HAVEN	23
+#define INSUFFICIENT_MAGIC_POINTS 24
+#define SPELL_NOT_FOUND	25
+#define ALREADY_BANNED	26
+#define UNKNOWN_USER	27
+#define INVALID_LEVEL	28
+#define BAD_DIRECTION	31
+#define CANT_BE_KILLED	32
+#define GAME_OVER	33
+#define ATTACK_HAVEN	34
+#define BAD_ROOM	35
+#define ACCESS_DENIED	36
+#define NO_HELP_TOPIC	37
+#define NO_PASSWORD	38
+#define KILL_WIZARD	39
 
 #define MONSTER_SPAWN_PROB	5
 #define ROOM_MONSTER_COUNT	10
+
 
 typedef struct {			/* monsters */
  char *name[BUF_SIZE];
@@ -226,4 +267,32 @@ typedef struct {
  struct ban *next;
 } ban;
 
+
+typedef struct {
+ char *mudserver[BUF_SIZE];
+ int mudport;
+ int objectresettime;
+ int databaseresettime;
+ int banresettime;
+ int userresettime;
+ int configsavetime;
+ int databasebackup;
+ int allowplayerkilling;
+ int allownewaccounts;
+ int monsterresettime;
+ int databasememorysize;
+ int pointsforwarrior;
+ int pointsforhero;
+ int pointsforchampion;
+ int pointsforsuperhero;
+ int pointsforenchanter;
+ int pointsforsorceror;
+ int pointsfornecromancer;
+ int pointsforlegend;
+ int pointsforwizard;
+ int lastroom;
+ char *isbuf;
+ int issuecount;
+ int roomcount;
+} CONFIG;
 

@@ -18,12 +18,11 @@
  #include "winsock.h"
 #endif
 
-#include "defs.h"
+#include "defines.h"
 
 char *monrel="/config/monsters.mud";
 monster *monsters=NULL;
 
-extern int roomcount;
 extern room *rooms;
 extern user *users;
 
@@ -37,10 +36,13 @@ int roommonster;
 int attack;
 int sta;
 int newroom;
+CONFIG config;
+
+getconfigurationinformation(&config);
 
 srand(time(NULL));
 
- roomnumber=1+rand() % roomcount;		/* which room */
+ roomnumber=1+rand() % config.roomcount;		/* which room */
 
  if(rooms[roomnumber].monstercount == 0) return(-1);
 
@@ -99,6 +101,9 @@ int createmonster(void) {
  int monsterno;
  int gencount;
  int mlc;
+ CONFIG config;
+
+ getconfigurationinformation(&config);
 
  monsterlist=monsters;
  while(monsterlist != NULL) {
@@ -106,7 +111,7 @@ int createmonster(void) {
   monsterlist=monsterlist->next;
  }
   	  	
-for(roomnumber=0;roomnumber<roomcount;roomnumber++) {
+for(roomnumber=0;roomnumber<config.roomcount;roomnumber++) {
  if((rooms[roomnumber].attr & ROOM_HAVEN)) continue;		/* skip haven rooms */
 
  gencount=rand() % (ROOM_MONSTER_COUNT/2); /* get numbers */
@@ -154,10 +159,11 @@ for(roomnumber=0;roomnumber<roomcount;roomnumber++) {
 int copymonstertoroom(int room,int destroom,int monsterno) {
 int countx;
 
-for(countx=0;countx<ROOM_MONSTER_COUNT;countx++) {	/* find free monster in room */
+for(countx=0;countx !=ROOM_MONSTER_COUNT;countx++) {	/* find free monster in room */
  if(rooms[destroom].roommonsters[countx].room == 0) break;
 }
 
+printf("Moving monster %s to %d\n",rooms[room].roommonsters[monsterno].name,destroom);
 
 if(countx == ROOM_MONSTER_COUNT) return(-1);		/* no free monsters */
 

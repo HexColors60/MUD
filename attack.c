@@ -39,17 +39,13 @@
  #include <winsock2.h>
 #endif
 
-#include "defs.h"
+#include "defines.h"
 
-extern char *nouser[BUF_SIZE];
 extern user *users;
-extern char *notthere[BUF_SIZE];
-extern int allowplayerkilling;
 extern room *rooms;
 
 char *fightprompt="fight>";
 char *havekilled=" and have killed it\r\n";
-char *noponpkilling="Player vs player combat not allowed\r\n";
 
 int attack(user *currentuser,char *target) {
  int count;
@@ -65,15 +61,18 @@ int attack(user *currentuser,char *target) {
  room *currentroom;
  race *racenext;
  char *buf[BUF_SIZE];
+ CONFIG config;
 
  currentroom=currentuser->roomptr;
  racenext=currentuser->race;
+
+ getconfigurationinformation(&config);
 
 /*
  * can't attack in haven rooms or attack wizards
  */
  if((currentroom->attr & ROOM_HAVEN) && currentuser->status < WIZARD) {
-  send(currentuser->handle,notthere,strlen(notthere),0);
+  display_error(count,ATTACK_HAVEN);
   return;
  }
 
@@ -95,9 +94,8 @@ while(currentuser->staminapoints > 0) {		/* until dead */
  while(usernext != NULL) {		/* find user if not monster */
   if(regexp(usernext->name,target) == TRUE && usernext->loggedin == TRUE) {	/* if object matches */
 
-   if(allowplayerkilling == FALSE) {	/* no player on player killing */
-    sprintf(buf,"can't attack %s: no player on player killing allowed\r\n",usernext->name);
-    send(currentuser->handle,buf,strlen(buf),0);
+   if(config.allowplayerkilling == FALSE) {	/* no player on player killing */
+    display_error(count,PVP_NOT_ALLOWED);
     return;
    }
 
@@ -164,7 +162,7 @@ for(count=0;count<ROOM_MONSTER_COUNT;count++) {
 
 }
 
-if(found == FALSE)  send(currentuser->handle,nouser,strlen(nouser),0);		/* missing player */
+if(found == FALSE) display_error(count,UNKNOWN_USER);;		/* missing player */
 return;
 }
  

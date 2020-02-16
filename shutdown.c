@@ -15,11 +15,10 @@
  #include "winsock.h"
 #endif
 
-#include "defs.h"
+#include "defines.h"
 
 char *shutdownmsg="WARNING: server shutdown\r\n";
 
-extern char *notyet[BUF_SIZE];
 extern user *users;
 
 int mudshutdown(user *currentuser,char *shutdownmessage) {
@@ -29,7 +28,7 @@ int mudshutdown(user *currentuser,char *shutdownmessage) {
  currentroom=currentuser->roomptr;
 
  if(currentuser->status < ARCHWIZARD) {		/* not yet */
-  send(socket,notyet,strlen(notyet),0);
+  display_error(currentuser->handle,NOT_YET);
   return;
  }
 

@@ -19,19 +19,17 @@
  #include "winsock.h"
 #endif
 
-#include "defs.h"
+#include "defines.h"
 
 extern char *notyet[BUF_SIZE];
 
 
 int changepassword(user *currentuser,char *u) {
 char *newpassprompt="Enter new password:";
-char *weakpass="Password is not strong enough; the password must contain at least on capital letter, one lowercase letter, a number and a symbol (!$%^)";
-
- char *userx[BUF_SIZE];
- char *encryptedpassword[BUF_SIZE];
- char *newpass[BUF_SIZE];
- char *buf[BUF_SIZE];
+char *userx[BUF_SIZE];
+char *encryptedpassword[BUF_SIZE];
+char *newpass[BUF_SIZE];
+char *buf[BUF_SIZE];
 
  if(!*u) {
   strcpy(userx,currentuser->name);		/* use default user and password */
@@ -39,7 +37,7 @@ char *weakpass="Password is not strong enough; the password must contain at leas
  else
  {
   if(currentuser->status < WIZARD) {		/* can't set other password unless a wizard */
-   send(currentuser->handle,notyet,strlen(notyet),0);
+   display_error(currentuser->handle,NOT_YET);
    return;
   }
 
@@ -50,7 +48,7 @@ char *weakpass="Password is not strong enough; the password must contain at leas
  getpassword(currentuser->handle,newpass);
 
  if(checkpasswordstrength(newpass) == FALSE) {	/* weak password */
-  send(currentuser->handle,weakpass,strlen(weakpass),0);
+  display_error(currentuser->handle,WEAK_PASSWORD);  
   return;
  }
 

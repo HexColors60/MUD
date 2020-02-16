@@ -3,7 +3,7 @@
 #include <stdint.h>
 
 #include <time.h>
-#include "defs.h"
+#include "defines.h"
 
 #define SECONDS_IN_YEAR	 31557600 
 #define SECONDS_IN_MONTH 2629800

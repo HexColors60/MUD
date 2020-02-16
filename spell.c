@@ -19,7 +19,7 @@
  #include "winsock.h"
 #endif
 
-#include "defs.h"
+#include "defines.h"
 
 extern user *users;
 extern int allowplayerkilling;
@@ -29,13 +29,7 @@ extern char *femaleusertitles[12];
 spell *spells=NULL;
 char *spellconf[BUF_SIZE];
 char *spellsrel="/config/spells.mud";
-
-char *highlevelspell="That spell needs a higher level user to cast it\r\n";
-char *nospellpoints="You don't have enough magic points to do that\r\n";
-char *nospellhaven="You can't put spells on users in haven rooms\r\n";
-char *notarget="No target for spell\r\n";
-char *nospell="Spell not found\r\n";
-char *spellhaskilled="and the spell has killed it!\r\n";
+char *spellhaskilled="and has killed it";
 
 int castspell(user *currentuser,char *s,char *t) {
 room *currentroom;
@@ -47,11 +41,16 @@ char *buf[BUF_SIZE];
 int spellfound;
 int pointsx;
 int count;
+CONFIG config;
 
 if(t == NULL) {
- send(currentuser->handle,notarget,strlen(notarget),0);
+ display_error(currentuser->handle,NO_PARAMS);
+
  return;
 }
+
+getconfigurationinformation(&config);
+
 currentroom=currentuser->roomptr;
 userrace=currentuser->race;		/* get race */
 
@@ -65,7 +64,7 @@ userrace=currentuser->race;		/* get race */
   if(strcmp(spellnext->name,s) == 0) {			/* found spell */
 
    if((currentuser->status < spellnext->level) && currentuser->status < WIZARD) {   /* spell required a higher level user */
-    send(currentuser->handle,highlevelspell,strlen(highlevelspell),0);
+    display_error(currentuser->handle,SPELL_LEVEL_USER);
     return;
    }
 
@@ -76,7 +75,7 @@ userrace=currentuser->race;		/* get race */
    if(currentuser->magicpoints-spellnext->spellpoints <= 0) {
 
 	    if(currentuser->status < WIZARD) {
-	     send(currentuser->handle,nospellpoints,strlen(nospellpoints),0);
+	     display_error(currentuser->handle,INSUFFICIENT_MAGIC_POINTS);
 	     return;
 	    }
     }
@@ -89,7 +88,7 @@ userrace=currentuser->race;		/* get race */
 }
 
 if(spellfound == FALSE) {	/* no spell */
- send(currentuser->handle,nospell,strlen(nospell),0);
+ display_error(currentuser->handle,SPELL_NOT_FOUND);
  return;
 }
 
@@ -98,7 +97,7 @@ if(spellfound == FALSE) {	/* no spell */
  */
 
  if((currentroom->attr & ROOM_HAVEN) == TRUE && currentuser->status < WIZARD) {		/* can't put spells on users in haven rooms */
-  send(currentuser->handle,nospellhaven,strlen(nospellhaven),0);
+  display_error(currentuser->handle,SPELL_HAVEN);
   return;
  }
  
@@ -107,9 +106,8 @@ if(spellfound == FALSE) {	/* no spell */
  while(usernext != NULL) {
    if(regexp(usernext->name,t) == TRUE) {		/* found target */
 
-	 if(allowplayerkilling == FALSE) {		/* can't kill player */
-  	  send(currentuser->handle,nospellhaven,strlen(nospellhaven),0);
-	  return;
+	 if(config.allowplayerkilling == FALSE) {		/* can't kill player */
+	  display_error(currentuser->handle,SPELL_HAVEN);
 	 }
 
          if(usernext->status > WIZARD) {		/* if not user, cast spell */

@@ -24,35 +24,10 @@
 #include <string.h>
 #include <unistd.h>
 
-#include "defs.h"
+#include "defines.h"
 
-extern char *mudnomem[BUF_SIZE];
-char *mudserver[BUF_SIZE];
-int mudport;
-int objectresettime;
-int databaseresettime;
-int banresettime;
-int userresettime;
-int configsavetime;
-int databasebackup;
-int allowplayerkilling;
-int allownewaccounts;
-int monsterresettime;
-int databasememorysize;
+CONFIG config;
 
-int pointsforwarrior=400;
-int pointsforhero=800;
-int pointsforchampion=1600;
-int pointsforsuperhero=3200;
-int pointsforenchanter=6400;
-int pointsforsorceror=128000;
-int pointsfornecromancer=256000;
-int pointsforlegend=512000;
-int pointsforwizard=1024000;
-char *isbuf;
-int issuecount;
-int allownewaccounts;
-int lastroom;
 
 char *mudconf[BUF_SIZE];
 char *isconf[BUF_SIZE];
@@ -114,117 +89,117 @@ strcat(isconf,isrel);
 
 
   if(strcmp(ab[0],"server") == 0) {
-   strcpy(mudserver,ab[1]);
+   strcpy(config.mudserver,ab[1]);
    continue;
   }
 
   if(strcmp(ab[0],"port") == 0) {
-   mudport=atoi(ab[1]);   
+   config.mudport=atoi(ab[1]);   
    continue;
   }
 
   if(strcmp(ab[0],"objectresettime") == 0) {        /* how often to reset objects */
-   objectresettime=getvaluefromtimestring(ab[1]);
+   config.objectresettime=getvaluefromtimestring(ab[1]);
    continue;
   }
 
   if(strcmp(ab[0],"databasesavetime") == 0) {	   /* how often to save database */
-   databaseresettime=getvaluefromtimestring(ab[1]);
+   config.databaseresettime=getvaluefromtimestring(ab[1]);
    continue;
   }
 
   if(strcmp(ab[0],"userresettime") == 0) {                /* how often to reset users */
-   userresettime=getvaluefromtimestring(ab[1]);
+   config.userresettime=getvaluefromtimestring(ab[1]);
    continue;
   }
 
   if(strcmp(ab[0],"configsavetime") == 0) {		/* backup database before save */
-   configsavetime=getvaluefromtimestring(ab[1]);
+   config.configsavetime=getvaluefromtimestring(ab[1]);
    continue;
   }
 
   if(strcmp(ab[0],"databasebackup") == 0) {		/* backup database before save */
-   databasebackup=-1;
+   config.databasebackup=-1;
 
-   if(strcmp(ab[1],"true") == 0) databasebackup=TRUE;
-   if(strcmp(ab[1],"false") == 0) databasebackup=FALSE;
+   if(strcmp(ab[1],"true") == 0) config.databasebackup=TRUE;
+   if(strcmp(ab[1],"false") == 0) config.databasebackup=FALSE;
 
-   if(databasebackup == -1) printf("mud: %d: value must be true or false\n",lc);	/* invalid option */
+   if(config.databasebackup == -1) printf("mud: %d: value must be true or false\n",lc);	/* invalid option */
    continue;
   }
 
    if(strcmp(ab[0],"allowplayerkilling") == 0) {		/* allow player killing */
-    allowplayerkilling;
+    config.allowplayerkilling=-1;
 
-    if(strcmp(ab[1],"true") == 0) allowplayerkilling=TRUE;
-    if(strcmp(ab[1],"false") == 0) allowplayerkilling=FALSE;
+    if(strcmp(ab[1],"true") == 0) config.allowplayerkilling=TRUE;
+    if(strcmp(ab[1],"false") == 0) config.allowplayerkilling=FALSE;
 
-    if(allowplayerkilling == -1) printf("mud: %d: value must be true or false\n",lc);	/* invalid option */
+    if(config.allowplayerkilling == -1) printf("mud: %d: value must be true or false\n",lc);	/* invalid option */
     continue;
    }
 
    if(strcmp(ab[0],"allownewaccounts") == 0) {		/* allow new accounts */
-    allownewaccounts=-1;
+    config.allownewaccounts=-1;
 
-    if(strcmp(ab[1],"true") == 0) allownewaccounts=TRUE;
-    if(strcmp(ab[1],"false") == 0) allownewaccounts=FALSE;
+    if(strcmp(ab[1],"true") == 0) config.allownewaccounts=TRUE;
+    if(strcmp(ab[1],"false") == 0) config.allownewaccounts=FALSE;
  
-    if(allownewaccounts == -1) printf("mud: %d: value must be true or false\n",lc);	/* invalid option */
+    if(config.allownewaccounts == -1) printf("mud: %d: value must be true or false\n",lc);	/* invalid option */
     continue;
    }
 
    if(strcmp(ab[0],"monsterresettime") == 0) {		/* how often to reset monsters */
-    monsterresettime=getvaluefromtimestring(ab[1]);
+    config.monsterresettime=getvaluefromtimestring(ab[1]);
     continue;
    }
 
    if(strcmp(ab[0],"banresettime") == 0) {		/* how often to reset monsters */
-    banresettime=getvaluefromtimestring(ab[1]);
+    config.banresettime=getvaluefromtimestring(ab[1]);
     continue;
    }
 
    if(strcmp(ab[0],"pointsforwarrior") == 0) {
-    pointsforwarrior=atoi(ab[1]);	/* points for levels */
+    config.pointsforwarrior=atoi(ab[1]);	/* points for levels */
     continue;
    }
 
    if(strcmp(ab[0],"pointsforhero") == 0) {
-    pointsforhero=atoi(ab[1]);
+    config.pointsforhero=atoi(ab[1]);
     continue;
    }
 
    if(strcmp(ab[0],"pointsforchampion") == 0) {
-    pointsforchampion=atoi(ab[1]);
+    config.pointsforchampion=atoi(ab[1]);
     continue;
    }
 
    if(strcmp(ab[0],"pointsforsuperhero") == 0) {
-    pointsforsuperhero=atoi(ab[1]);
+    config.pointsforsuperhero=atoi(ab[1]);
     continue;
    }
 
    if(strcmp(ab[0],"pointsforenchanter") == 0) {
-    pointsforenchanter=atoi(ab[1]);
+    config.pointsforenchanter=atoi(ab[1]);
     continue;
    }
 
    if(strcmp(ab[0],"pointsforsorceror") == 0) {
-    pointsforsorceror=atoi(ab[1]);
+    config.pointsforsorceror=atoi(ab[1]);
     continue;
    }
 
    if(strcmp(ab[0],"pointsfornecromancer") == 0) {
-    pointsfornecromancer=atoi(ab[1]);
+    config.pointsfornecromancer=atoi(ab[1]);
     continue;
    }
 
    if(strcmp(ab[0],"pointsforlegend") == 0) {
-    pointsforlegend=atoi(ab[1]);
+    config.pointsforlegend=atoi(ab[1]);
     continue;
    }
    
    if(strcmp(ab[0],"pointsforwizard") == 0) {
-    pointsforwizard=atoi(ab[1]);
+    config.pointsforwizard=atoi(ab[1]);
     continue;
    }
 
@@ -242,7 +217,7 @@ strcat(isconf,isrel);
  printf("Loading database...");
  loaddatabase();
 
-// resetobjects();
+ resetobjects();
 printf("ok\n");
 
 
@@ -286,16 +261,18 @@ if(handle == NULL) {                                           /* couldn't open 
 }
 
 fseek(handle,0,SEEK_END);		/* get file size */
-issuecount=ftell(handle);
+config.issuecount=ftell(handle);
 fseek(handle,0,SEEK_SET);
 
-isbuf=calloc(1,issuecount);
-if(isbuf == NULL) {			/* can't allocate */
- printf("%s\n",mudnomem);
+config.isbuf=calloc(1,config.issuecount);
+if(config.isbuf == NULL) {			/* can't allocate */
+ perror("mud:");
  exit(NOMEM);
 }
 
-fread(isbuf,1,issuecount,handle);		/* read data */
+fread(config.isbuf,1,config.issuecount,handle);		/* read data */
+printf("isbuf=%s\n",config.isbuf);
+
 fclose(handle);
 
 printf("ok\n");
@@ -304,7 +281,7 @@ printf("Loading users...");
 loadusers();
 printf("ok\n");
 
-printf("mud: creating monsters...");
+printf("Creating monsters...");
 createmonster();
 printf("ok\n");
 
@@ -325,7 +302,7 @@ resetobjects();
 printf("ok\n");
 
 if(errorcount > 0) {			/* errors */
- printf("mud: %d errors\n",errorcount);
+ printf("%d errors\n",errorcount);
  exit(CONFIG_ERROR);
 }
 
@@ -340,21 +317,21 @@ int updateconfiguration(void) {
  if(handle == NULL) return;                                          /* couldn't open file */
 
 
- fprintf(handle,"server=%s\n",mudserver);
- fprintf(handle,"port=%d\n",mudport);
+ fprintf(handle,"server=%s\n",config.mudserver);
+ fprintf(handle,"port=%d\n",config.mudport);
 
  memset(buf,0,BUF_SIZE);
 
- createtimestring(objectresettime,buf);
+ createtimestring(config.objectresettime,buf);
  fprintf(handle,"objectresettime=%s\n",buf);
 
  memset(buf,0,BUF_SIZE);
 
- createtimestring(databaseresettime,buf);
+ createtimestring(config.databaseresettime,buf);
  fprintf(handle,"databasesavetime=%s\n",buf);
 
  fputs("databasebackup=",handle);
- if(databasebackup == TRUE) {
+ if(config.databasebackup == TRUE) {
   fputs("true\n",handle);
  }
  else
@@ -363,7 +340,7 @@ int updateconfiguration(void) {
  }
 
  fputs("allowplayerkilling=",handle);
- if(allowplayerkilling == TRUE) {
+ if(config.allowplayerkilling == TRUE) {
   fputs("true\n",handle);
  }
  else
@@ -373,7 +350,7 @@ int updateconfiguration(void) {
 
 
  fputs("allownewaccounts=",handle);
- if(allownewaccounts== TRUE) {
+ if(config.allownewaccounts== TRUE) {
   fputs("true\n",handle);
  }
  else
@@ -383,25 +360,33 @@ int updateconfiguration(void) {
 
  memset(buf,0,BUF_SIZE);
 
- createtimestring(monsterresettime,buf);
+ createtimestring(config.monsterresettime,buf);
 
  fprintf(handle,"monsterresettime=%s\n",buf);
 
  memset(buf,0,BUF_SIZE);
- createtimestring(banresettime,buf);
+ createtimestring(config.banresettime,buf);
 
  fprintf(handle,"banresettime=%s\n",buf);
- fprintf(handle,"pointsforhero=%d\n",pointsforhero);
- fprintf(handle,"pointsforwarrior=%d\n",pointsforwarrior);
- fprintf(handle,"pointsforchampion=%d\n",pointsforchampion);
- fprintf(handle,"pointsforsuperhero=%d\n",pointsforsuperhero);
- fprintf(handle,"pointsforenchanter=%d\n",pointsforenchanter);
- fprintf(handle,"pointsforsorceror=%d\n",pointsforsorceror);
- fprintf(handle,"pointsfornecromancer=%d\n",pointsfornecromancer);
- fprintf(handle,"pointsforlegend=%d\n",pointsforlegend);
- fprintf(handle,"pointsforwizard=%d\n",pointsforwizard);
+ fprintf(handle,"pointsforhero=%d\n",config.pointsforhero);
+ fprintf(handle,"pointsforwarrior=%d\n",config.pointsforwarrior);
+ fprintf(handle,"pointsforchampion=%d\n",config.pointsforchampion);
+ fprintf(handle,"pointsforsuperhero=%d\n",config.pointsforsuperhero);
+ fprintf(handle,"pointsforenchanter=%d\n",config.pointsforenchanter);
+ fprintf(handle,"pointsforsorceror=%d\n",config.pointsforsorceror);
+ fprintf(handle,"pointsfornecromancer=%d\n",config.pointsfornecromancer);
+ fprintf(handle,"pointsforlegend=%d\n",config.pointsforlegend);
+ fprintf(handle,"pointsforwizard=%d\n",config.pointsforwizard);
 
  fclose(handle);
 return;
+}
+
+int getconfigurationinformation(CONFIG *buf) {
+ memcpy(buf,&config,sizeof(CONFIG));
+}
+
+int updateconfigurationinformation(CONFIG *buf) {
+ memcpy(&config,buf,sizeof(CONFIG));
 }
 
