@@ -15,7 +15,6 @@ unsigned int itoa(unsigned int n, char s[]);
 void reverse(char s[]);
 unsigned int touppercase(char *string);
 unsigned int wildcard_rename(char *name,char *mask,char *out);
-int strtrunc(char *str,int c);
 uint32_t tohex(uint32_t hex,char *buf);
 int tokenize_line(char *linebuf,char *tokens[BUF_SIZE][BUF_SIZE],char *split);
 
@@ -174,20 +173,6 @@ for(count=0;count<strlen(newmask);count++) {
 return;
 }			
 
-int strtrunc(char *str,int c) {
-char *s;
-int count;
-int pos;
-
-s=str;
-while(*s++ != 0) ;;
-
-s -= 2;
-*s=0;
-
-return;
-}
-
 uint32_t tohex(uint32_t hex,char *buf) {
 unsigned int count;
 uint32_t h;
@@ -295,7 +280,7 @@ int tcp_getline(int socket,char *buf) {
    b=temp;
 
    if(*b == '\n') {
-    if(strlen(buf) > 0) strtrunc(buf,1);
+    if(strlen(buf) > 0) *b=0;
     return(count);
    }
   

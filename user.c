@@ -31,10 +31,10 @@ user *users=NULL;
 
 extern race *races;
 extern class *classes;
-
 extern room *rooms;
-extern monster *monsters;		/* defined in monster.c */
-extern ban *bans;			/* defined in ban.c */
+
+char *banconf[BUF_SIZE];
+ban *bans=NULL;
 
 /* titles */
  char *maleusertitles[] = {"","Novice","Warrior","Hero","Champion","Superhero","Enchanter","Sorceror","Necromancer", \
@@ -227,10 +227,10 @@ do {
   b=b+strlen(z);
   b--;
 
-  if(*b == '\n') strtrunc(z,1);
+  if(*b == '\n') *b=0;
   b--;
-  if(*b == '\r') strtrunc(z,1);
- 
+  if(*b == '\r') *b=0;
+
   lc++;
 
   b=z;
@@ -534,7 +534,6 @@ usernext=usernext->next;
  */
 
  found=FALSE;
- monsternext=monsters;
 
  for(count=0;count<currentroom->monstercount;count++) {
   if(regexp(u,currentroom->roommonsters[count].name) == TRUE) {		/* found monster */
@@ -542,7 +541,6 @@ usernext=usernext->next;
    found=TRUE;
   }
 
- monsternext=monsternext->next;
 }
 
 if(found == FALSE)  display_error(currentuser->handle,UNKNOWN_USER); /* unknown user */
@@ -1200,9 +1198,9 @@ strcat(raceconf,racerel);
   b=b+strlen(z);
   b--;
 
-  if(*b == '\n') strtrunc(z,1);
+  if(*b == '\n') *b=0;
   b--;
-  if(*b == '\r') strtrunc(z,1);
+  if(*b == '\r') *b=0;
 
   lc++;
 
@@ -1384,9 +1382,9 @@ while(!feof(handle)) {
   b=b+strlen(z);
   b--;
 
-  if(*b == '\n') strtrunc(z,1);
+  if(*b == '\n') *b=0;
   b--;
-  if(*b == '\r') strtrunc(z,1);
+  if(*b == '\r') *b=0;
 
   tokenize_line(z,ab,":\n");				/* tokenize line */
 
@@ -1852,9 +1850,9 @@ int login(int msgsocket,char *uname,char *upass) {
 	  b=b+strlen(buf);
 	  b--;
 
-	  if(*b == '\n') strtrunc(buf,1);
+	  if(*b == '\n') *b=0;
 	  b--;
-	  if(*b == '\r') strtrunc(buf,1);
+	  if(*b == '\r') *b=0;
 
 	  tokenize_line(buf,ab,":");		/* tokenize line */
 	  strcpy(objnext->name,ab[OBJECT_NAME]);

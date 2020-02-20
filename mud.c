@@ -28,9 +28,6 @@
 
 #define  MAX_BACKLOG 14
 
-char *banconf[BUF_SIZE];
-ban *bans=NULL;
-
 extern user *users;
 extern race *races;
 extern class *classes;
@@ -42,7 +39,7 @@ char *chooserace="Choose a player race\r\n\r\n";
 char *chooseclass="Choose a player class\r\n\r\n";
 char *classprompt="Enter player class:";
 char *chooseplayerclass="Choose a player class\r\n";
-char *chooseplayerrace="Choose a player race:\r\nName\t\Magic\t\Strength\t\Agility\tDexterity\tLuck\tWisdon\tIntelligence\tStamina\r\n";
+char *chooseplayerrace="Choose a player race:\r\nName\t\Magic\t\nStrength\t\nAgility\tDexterity\tLuck\tWisdon\tIntelligence\tStamina\r\n";
 char *raceprompt="Enter player race:";
 char *newuserprompt="Enter new username:";
 char *promptnewaccount="Enter username [type 'new' to create a new account]:";
@@ -228,7 +225,6 @@ for(count=0;count <= maxsocket && retval > 0;count++) {		/* search sockets */
 	         close(as);
 	        }
 
-		printf("config=%s",config.isbuf);
 	        send(as,config.isbuf,config.issuecount,0);  	
 
        		if(config.allownewaccounts == TRUE) {
@@ -244,8 +240,6 @@ for(count=0;count <= maxsocket && retval > 0;count++) {		/* search sockets */
 	   }
 
 	 memset(connections[count].temp,0,BUF_SIZE);
-
-        if(connections[count].connectionstate == STATE_GETCOMMAND) send(count,">",1,0);
 
 /* get line from connection */
 	
@@ -326,6 +320,7 @@ for(count=0;count <= maxsocket && retval > 0;count++) {		/* search sockets */
 			memset(connections[count].buf,0,BUF_SIZE);
 
 		 	connections[count].connectionstate=STATE_GETCOMMAND;
+			send(count,">",1,0);
 			break;
 
 		/* these states are for creating a new user */
@@ -500,11 +495,14 @@ for(count=0;count <= maxsocket && retval > 0;count++) {		/* search sockets */
 			connections[count].connectionstate=STATE_GETCOMMAND;	/* next state */
 
 			memset(connections[count].buf,0,BUF_SIZE);
+			send(count,">",1,0);
 			/* fall through */
 
 	    case STATE_GETCOMMAND:
 			docommand(connections[count].user,connections[count].buf);
 			connections[count].connectionstate=STATE_GETCOMMAND;	/* loop in state STATE_GETCOMMAND */
+
+			send(count,">",1,0);
 		}
 	
 	      memset(connections[count].buf,0,BUF_SIZE);   

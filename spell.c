@@ -22,7 +22,6 @@
 #include "defines.h"
 
 extern user *users;
-extern int allowplayerkilling;
 extern char *maleusertitles[12];
 extern char *femaleusertitles[12];
 		
@@ -208,9 +207,9 @@ strcat(spellconf,spellsrel);
   b=b+strlen(z);
   b--;
 
-  if(*b == '\n') strtrunc(z,1);
+  if(*b == '\n') *b=0;
   b--;
-  if(*b == '\r') strtrunc(z,1);
+  if(*b == '\r') *b=0;
 
   lc++;
 

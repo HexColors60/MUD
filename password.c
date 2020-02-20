@@ -21,9 +21,6 @@
 
 #include "defines.h"
 
-extern char *notyet[BUF_SIZE];
-
-
 int changepassword(user *currentuser,char *u) {
 char *newpassprompt="Enter new password:";
 char *userx[BUF_SIZE];
@@ -90,7 +87,7 @@ int getpassword(int msgsocket,char *buf) {
   send(msgsocket,"\b \b",3,0);
 
    if(*b == '\n') {
-    if(strlen(buf) > 0) strtrunc(buf,1);
+    if(strlen(buf) > 0) *b=0;
     return(count);
    }
   

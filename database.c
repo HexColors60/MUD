@@ -73,15 +73,12 @@ getconfigurationinformation(&config);
 time(&rawtime);
 timeinfo=localtime(&rawtime);
 
-
-strftime(newname,BUF_SIZE,"/config/database-%H-%M-%S-%d-%e.sav",timeinfo);	/* get backup name */
-printf("%s\n",newname);
-
-getcwd(buf,BUF_SIZE);	
-
-strcat(buf,newname);
-
-if(config.databasebackup == TRUE) copyfile(dbconf,newname);		/* backup database */
+if(config.databasebackup == TRUE) {
+ getcwd(buf,BUF_SIZE);	
+ strftime(newname,BUF_SIZE,"/config/database-%H-%M-%S-%d-%e.sav",timeinfo);	/* get backup name */
+ strcat(buf,newname);
+ copyfile(dbconf,buf);		/* backup database */
+}
 
  handle=fopen(dbconf,"w");
  if(handle == NULL) return;	/* can't open file */
@@ -197,9 +194,9 @@ count=0;
   b=b+strlen(z);
   b--;
 
-  if(*b == '\n') strtrunc(z,1);
+  if(*b == '\n') *b=0;
   b--;
-  if(*b == '\r') strtrunc(z,1);
+  if(*b == '\r') *b=0;
 
   tokenize_line(z,ab,":\n");				/* tokenize line */
 

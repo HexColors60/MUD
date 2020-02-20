@@ -79,9 +79,9 @@ strcat(isconf,isrel);
   b=b+strlen(z);
   b--;
 
-  if(*b == '\n') strtrunc(z,1);
+  if(*b == '\n') *b=0;
   b--;
-  if(*b == '\r') strtrunc(z,1);
+  if(*b == '\r') *b=0;
 
   tokenize_line(z,ab,"=");			/* tokenize line */
 
@@ -271,7 +271,6 @@ if(config.isbuf == NULL) {			/* can't allocate */
 }
 
 fread(config.isbuf,1,config.issuecount,handle);		/* read data */
-printf("isbuf=%s\n",config.isbuf);
 
 fclose(handle);
 
