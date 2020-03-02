@@ -115,7 +115,7 @@ memset(&service, 0, sizeof(service));
 
 service.sin_addr.s_addr=htonl(htonl(INADDR_ANY));
 service.sin_family=AF_INET;				
-service.sin_port=htons(5000);
+service.sin_port=htons(config.mudport);
 						
 if(bind(ls,&service,sizeof(service)) == -1) { 		/* bind to socket  */
  printf("mud: Unable to bind to socket\n");
@@ -198,17 +198,19 @@ while(1) {
  retval=select(maxsocket+1,&readset,NULL,NULL,&tv);
 
 
-for(count=0;count <= maxsocket && retval > 0;count++) {		/* search sockets */
+for(count=0;count <= maxsocket && retval > 0;++count) {		/* search sockets */
 	
   if(FD_ISSET(count,&readset)) { 	/* ready to read */
+
    	   if(count == ls) {		/* new connection */
 	     	as=accept(ls,(struct sockaddr*)NULL, NULL); 
 
 		#ifdef _LINUX
  		 fcntl(as,O_NONBLOCK);		/* make the socket nonblocking */
 		#endif
-
+	
 	     	FD_SET(as,&currentset);		/* add connection */
+	
 	        if(maxsocket < as) maxsocket=as;	/* new maximum */
 				
 
@@ -237,9 +239,10 @@ for(count=0;count <= maxsocket && retval > 0;count++) {		/* search sockets */
 
 	   	       connections[as].connectionstate=STATE_GETPASSWORD;
 
-	   }
-
-	 memset(connections[count].temp,0,BUF_SIZE);
+	 }
+	 else
+         {
+  	  memset(connections[count].temp,0,BUF_SIZE);
 
 /* get line from connection */
 	
@@ -499,7 +502,7 @@ for(count=0;count <= maxsocket && retval > 0;count++) {		/* search sockets */
 			/* fall through */
 
 	    case STATE_GETCOMMAND:
-			docommand(connections[count].user,connections[count].buf);
+           		docommand(connections[count].user,connections[count].buf);
 			connections[count].connectionstate=STATE_GETCOMMAND;	/* loop in state STATE_GETCOMMAND */
 
 			send(count,">",1,0);

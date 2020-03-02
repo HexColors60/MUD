@@ -205,29 +205,45 @@ strcat(isconf,isrel);
 
    if(strcmp(ab[0],"#") == 0) continue;		/* comment */
 
-   printf("mud: %d: unknown configuration option %s in %s\n",lc,ab[0],mudconf);		/* unknown configuration option */
+   printf("\nmud: %d: unknown configuration option %s in %s\n",lc,ab[0],mudconf);		/* unknown configuration option */
    errorcount++;
  }
 
  fclose(handle);
- printf("ok\n");
+ if(errorcount == 0) {
+  printf("ok\n");
+ }
+ else
+ {
+  printf("\n");
+ }
 
 /* load MUD database */
 
- printf("Loading database...");
- loaddatabase();
-
- resetobjects();
-printf("ok\n");
-
+printf("Loading database...");
+errorcount += loaddatabase();
+if(errorcount == 0) {
+ printf("ok\n");
+}
+else
+{
+ printf("\n");
+}
 
 /*
  * load spells
  */
 
  printf("Loading spells...");
- loadspells();
-printf("ok\n");
+ errorcount += loadspells();
+
+if(errorcount == 0) {
+ printf("ok\n");
+}
+else
+{
+ printf("\n");
+}
 
 /*
  * load monsters
@@ -236,20 +252,39 @@ printf("ok\n");
  lc=0;
 
  printf("Loading monsters...");
- loadmonsters();
-printf("ok\n");
+ errorcount += loadmonsters();
+
+if(errorcount == 0) {
+  printf("ok\n");
+}
+else
+{
+ printf("\n");
+}
 
 /*
  * load races+
  */
 printf("Loading races...");
-loadraces();
-printf("ok\n");
+
+errorcount += loadraces();
+if(errorcount == 0) {
+ printf("ok\n");
+}
+else
+{
+ printf("\n");
+}
 
 printf("Loading classes...");
-loadclasses();
-
-printf("ok\n");
+errorcount += loadclasses();
+if(errorcount == 0) {
+ printf("ok\n");
+}
+else
+{
+ printf("\n");
+}
 
 printf("Loading message...");
 
@@ -277,8 +312,14 @@ fclose(handle);
 printf("ok\n");
 
 printf("Loading users...");
-loadusers();
-printf("ok\n");
+errorcount += loadusers();
+if(errorcount == 0) {
+ printf("ok\n");
+}
+else
+{
+ printf("\n");
+}
 
 printf("Creating monsters...");
 createmonster();
@@ -290,14 +331,11 @@ printf("ok\n");
  */
 
 printf("Loading bans...");
-
 loadbans();
-
 printf("ok\n");
 
 printf("Creating objects...");
 resetobjects();
-
 printf("ok\n");
 
 if(errorcount > 0) {			/* errors */

@@ -173,6 +173,7 @@ typedef struct {			/* monsters */
  int moveodds;
  int genodds;
  int damage;
+ int experiencepoints;
  int room;
  int sleep;
  struct monster *last;

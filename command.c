@@ -171,7 +171,7 @@ struct {
 		   {  NULL,"COPY",&copy_statement },\
 		   {  NULL,"MOVE",&move_statement },\
 		   {  NULL,"DIG",&dig_statement },\
-		   {  NULL,"FORCE",&north_statement },\
+		   {  NULL,"FORCE",&force_statement },\
 		   {  NULL,"LISTBAN",&listban_statement },\
 		   {  NULL,"GO",&go_statement },\
 		   {  NULL,"WALL",&wall_statement },\

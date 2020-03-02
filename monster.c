@@ -118,7 +118,7 @@ for(roomnumber=0;roomnumber<config.roomcount;roomnumber++) {
 
  rooms[roomnumber].monstercount=gencount;
 
- for(countx=1;countx<gencount;countx++) {
+ for(countx=0;countx<gencount;countx++) {
 /* copy monsters from monster list  to monster list in room */
 
 	  monsterlist=monsters;
@@ -183,7 +183,7 @@ monster *montemp[ROOM_MONSTER_COUNT];
 
 if(rooms[room].monstercount == 0) return(-1);	/* no monsters */
 
-/* remove first monster */
+/* remove last monster */
 if(monsterno == ROOM_MONSTER_COUNT) {
  memset(&rooms[room].roommonsters[monsterno],0,sizeof(room));
 
@@ -191,19 +191,16 @@ if(monsterno == ROOM_MONSTER_COUNT) {
  return(0);
 }
 
-if(monsterno >= 1 && monsterno < ROOM_MONSTER_COUNT) {
- countx=ROOM_MONSTER_COUNT-monsterno;		/* number of remaining monsters */
+countx=(ROOM_MONSTER_COUNT-monsterno);		/* number of remaining monsters */
 
- memcpy(montemp,&rooms[room].roommonsters[monsterno],countx);
- memcpy(&rooms[room].roommonsters[monsterno-1],montemp,countx);
- rooms[room].monstercount--;
- return(0);
-}
+memcpy(montemp,&rooms[room].roommonsters[monsterno+1],countx);
+memcpy(&rooms[room].roommonsters[monsterno],montemp,countx);
+rooms[room].monstercount--;
 
 return(0);
 }
 
-void loadmonsters(void) {
+int loadmonsters(void) {
 monster *monsternext;
 FILE *handle;
 char *b;
@@ -221,7 +218,7 @@ monsternext=monsters;
 
  handle=fopen(monsterconf,"rb");
  if(handle == NULL) {                                           /* couldn't open file */
-  printf("mud: Can't open configuration file %s\n",monsterconf);
+  printf("\nmud: Can't open configuration file %s\n",monsterconf);
   exit(NOCONFIGFILE);
  }
 
@@ -254,7 +251,7 @@ monsternext=monsters;
    if(monsters == NULL) {			/* first monster */
     monsters=calloc(1,sizeof(monster));
     if(monsters == NULL) {
-     perror("mud:");
+     perror("\nmud:");
      exit(NOMEM);
     }
 
@@ -266,7 +263,7 @@ monsternext=monsters;
     monsternext=monsternext->next;
 
     if(monsternext == NULL) {
-     perror("mud:");
+     perror("\nmud:");
      exit(NOMEM);
     }
     
@@ -333,10 +330,11 @@ monsternext=monsters;
 
   if(strcmp(ab[0],"end") == 0) continue;
 
-  printf("mud: %d: unknown configuration option %s in %s\n",lc,ab[0],monsterconf);		/* unknown configuration option */
+  printf("\nmud: %d: unknown configuration option %s in %s\n",lc,ab[0],monsterconf);		/* unknown configuration option */
   errorcount++;
 }
 
 fclose(handle); 
+return(errorcount);
 }
 

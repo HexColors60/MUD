@@ -27,14 +27,13 @@
 
 #include "defines.h"
 
-user *users=NULL;
-
-extern race *races;
-extern class *classes;
 extern room *rooms;
 
+user *users=NULL;
 char *banconf[BUF_SIZE];
 ban *bans=NULL;
+race *races=NULL;
+class *classes=NULL;
 
 /* titles */
  char *maleusertitles[] = {"","Novice","Warrior","Hero","Champion","Superhero","Enchanter","Sorceror","Necromancer", \
@@ -93,7 +92,6 @@ if(currentuser->status < WIZARD) {		/* not yet */
  return;
 }
 
-
 banlist=bans;
 
 while(banlist != NULL) {
@@ -143,6 +141,11 @@ int listbans(user *currentuser,char *banname) {
  char *name[BUF_SIZE];
  char *b;
  char *buf[BUF_SIZE];
+
+ if(currentuser->status < WIZARD) {		/* not yet */
+ display_error(currentuser->handle,NOT_YET);
+ return;
+}
 
  if(!*banname) {		/* nop name */
   strcpy(name,"*");
@@ -200,7 +203,7 @@ banlast=banlist;
  return;
 }
 
-void loadbans(void) {
+int loadbans(void) {
 ban *bannext;
 char *z[BUF_SIZE];
 char *b;
@@ -216,7 +219,7 @@ strcat(banconf,banrel);
 
  handle=fopen(banconf,"rb");
  if(handle == NULL) {                                           /* couldn't open file */
-  printf("mud: Can't open configuration file %s\n",banconf);
+  printf("\nmud: Can't open configuration file %s\n",banconf);
   exit(NOCONFIGFILE);
  }
 
@@ -240,7 +243,7 @@ do {
    if(bans == NULL) {			/* first ban */
     bans=calloc(1,sizeof(ban));
     if(bans == NULL) {
-     perror("mud:");
+     perror("\nmud:");
      exit(NOMEM);
     }
 
@@ -252,7 +255,7 @@ do {
     bannext=bannext->next;
 
     if(bannext == NULL) {
-     perror("mud:");
+     perror("\nmud:");
      exit(NOMEM);
     }
 
@@ -582,7 +585,7 @@ int quit(user *currentuser) {
 
  sendmudmessagetoall(currentuser->room,buf);
 
- currentuser->loggedin=FALSE;
+ currentuser->loggedin=FALSE; /* mark as logged out */
  close(currentuser->handle);
  return;
 
@@ -1181,7 +1184,7 @@ strcat(raceconf,racerel);
 
  handle=fopen(raceconf,"rb");
  if(handle == NULL) {                                           /* couldn't open file */
-  printf("mud: Can't open configuration file %s\n",raceconf);
+  printf("\nmud: Can't open configuration file %s\n",raceconf);
 
   exit(NOCONFIGFILE);
  }
@@ -1210,7 +1213,7 @@ strcat(raceconf,racerel);
    if(races == NULL) {			/* first race */
     races=calloc(1,sizeof(race));
     if(races == NULL) {
-     perror("mud:");
+     perror("\nmud:");
      exit(NOMEM);
     }
 
@@ -1222,7 +1225,7 @@ strcat(raceconf,racerel);
     racenext=racenext->next;
 
     if(racenext == NULL) {
-     perror("mud:");
+     perror("\nmud:");
      exit(NOMEM);
     }
 
@@ -1275,12 +1278,13 @@ strcat(raceconf,racerel);
  
   if(strcmp(ab[0],"end") == 0) continue;
 
-  printf("mud: %d: uknown configuration option %s in %s\n",lc,ab[0],raceconf);		/* unknown configuration option */
+  printf("\nmud: %d: uknown configuration option %s in %s\n",lc,ab[0],raceconf);		/* unknown configuration option */
   errorcount++;
 }
  
 
 fclose(handle);
+return(errorcount);
 }
 
 
@@ -1302,7 +1306,7 @@ strcat(classconf,classrel);
 
  handle=fopen(classconf,"rb");
  if(handle == NULL) {                                           /* couldn't open file */
-  printf("mud: Can't open configuration file %s\n",classconf);
+  printf("\nmud: Can't open configuration file %s\n",classconf);
 
   exit(NOCONFIGFILE);
  }
@@ -1323,7 +1327,7 @@ strcat(classconf,classrel);
    if(classes == NULL) {			/* first class */
     classes=calloc(1,sizeof(class));
     if(classes == NULL) {
-     perror("mud:");
+     perror("\nmud:");
      exit(NOMEM);
     }
 
@@ -1335,7 +1339,7 @@ strcat(classconf,classrel);
     classnext=classnext->next;
 
     if(classnext == NULL) {
-     perror("mud:");
+     perror("\nmud:");
      exit(NOMEM);
     }
 
@@ -1345,6 +1349,7 @@ strcat(classconf,classrel);
  }
 
 fclose(handle);
+return(errorcount);
 }
 
 void loadusers(void) {
@@ -1366,7 +1371,7 @@ strcat(usersconf,userrel);
 
 handle=fopen(usersconf,"rb");
 if(handle == NULL) {                                           /* couldn't open file */
- printf("mud: Can't open configuration file %s\n",usersconf);
+ printf("\nmud: Can't open configuration file %s\n",usersconf);
  exit(NOCONFIGFILE);
 }
 
@@ -1391,7 +1396,7 @@ while(!feof(handle)) {
    if(users == NULL) {			/* first user */
     users=calloc(1,sizeof(user));
     if(users == NULL) {
-     perror("mud:");
+     perror("\nmud:");
      exit(NOMEM);
     }
 
@@ -1403,7 +1408,7 @@ while(!feof(handle)) {
     usernext=usernext->next;
 
     if(usernext == NULL) {
-     perror("mud:");
+     perror("\nmud:");
      exit(NOMEM);
     }
 
@@ -1456,6 +1461,7 @@ while(!feof(handle)) {
 
 
 fclose(handle);
+return(errorcount);
 }
 
 
@@ -1966,4 +1972,49 @@ strcpy(usernext->ipaddress,inet_ntoa(clientip.sin_addr));
 updateusersfile();		/* update users file */
 return(0);
 }
+
+
+int addnewrace(race *newrace) {
+ race *next;
+ race *last;
+
+ next=races;
+ last=next;
+
+ if(next != NULL) {
+  last=next;
+  next=next->next;
+ }
+
+ last->next=calloc(1,sizeof(race));		/*  add new */
+ if(last->next == NULL) return(-1);
+
+ memcpy(last->next,newrace,sizeof(race));
+ return(0);
+}
+
+int addnewclass(user *currentuser,class *newclass) {
+ class *next;
+ class *last;
+
+ if(currentuser->status < ARCHWIZARD) {		/* can't do this yet */
+  display_error(currentuser->handle,NOT_YET);  
+  return;
+ }
+
+ next=classes;
+ last=next;
+
+ if(next != NULL) {
+  last=next;
+  next=next->next;
+ }
+
+ last->next=calloc(1,sizeof(class));		/*  add new */
+ if(last->next == NULL) return(-1);
+
+ memcpy(last->next,newclass,sizeof(class));
+ return(0);
+}
+
 

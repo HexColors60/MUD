@@ -35,7 +35,6 @@ extern user *users;
 extern char *maleusertitles[12];
 extern char *femaleusertitles[12];
 
-
 char *dbconf[BUF_SIZE];
 char *dbrel="/config/database.mud";                                          /* configuration files */
 int databaseupdated;
@@ -53,8 +52,6 @@ char *roommsg="\r\nIn the room there is: ";
 char *roomexits[]={ "North ","South ","East ","West ","Northeast ","Northwest ","Southeast ","Southwest ","Up ","Down " };
 
 room *rooms=NULL;
-race *races=NULL;
-class *classes=NULL;
 
 /* update database file */
 
@@ -133,7 +130,7 @@ if(config.databasebackup == TRUE) {
 fclose(handle);
 }
 
-void loaddatabase(void) {
+int loaddatabase(void) {
 FILE *handle;
 int lc=0;
 roomobject *roomobject;
@@ -153,7 +150,7 @@ strcat(dbconf,dbrel);
 
  handle=fopen(dbconf,"rb");
  if(handle == NULL) {                                           /* couldn't open file */
-  printf("mud: Can't open configuration file %s\n",dbconf);
+  printf("\nmud: Can't open configuration file %s\n",dbconf);
   exit(NOCONFIGFILE);
  }
 
@@ -206,7 +203,7 @@ count=0;
    count=atoi(ab[1]);
   
    if(count > config.roomcount) {
-    printf("mud: %d: room number is > number of rooms in %s\r\n",lc,dbconf); /* unknown configuration option */
+    printf("\nmud: %d: room number is > number of rooms in %s\r\n",lc,dbconf); /* unknown configuration option */
     errorcount++;
     exit(1);
    }
@@ -243,11 +240,11 @@ count=0;
    continue;
   }
 
-  for(countx=0;countx<11;countx++) {
+  for(countx=0;countx<12;countx++) {
    if(strcmp(ab[0],roomnames[countx]) == 0) {		/* room exits */
-
+    
     if(atoi(ab[1])  > config.roomcount) {
-     printf("mud: %d: room number is > number of rooms in %s\r\n",lc,dbconf); /* unknown configuration option */
+     printf("\nmud: %d: room number is > number of rooms in %s\r\n",lc,dbconf); /* unknown configuration option */
      errorcount++;
      exit(1);
     }
@@ -259,6 +256,7 @@ count=0;
   continue;
  }
 
+  if(countx < 12) continue;		/* found room */
 
   if(strcmp(ab[0],"object") == 0) {		/* room object */
    roomobject=rooms[count].roomobjects;
@@ -303,57 +301,14 @@ count=0;
 
   if(strcmp(ab[0],"#") == 0) continue;			/* comment */
 
-//  printf("mud: %d: unknown configuration option %s in %s\n",lc,ab[0],dbconf);		/* unknown configuration option */
-//  errorcount++;
-//  continue;
+  printf("\nmud: %d: unknown configuration option %s in %s\n",lc,ab[0],dbconf);		/* unknown configuration option */
+  errorcount++;
+  continue;
  }
 
 fclose(handle);
+return(errorcount);
 }
-
-int addnewrace(race *newrace) {
- race *next;
- race *last;
-
- next=races;
- last=next;
-
- if(next != NULL) {
-  last=next;
-  next=next->next;
- }
-
- last->next=calloc(1,sizeof(race));		/*  add new */
- if(last->next == NULL) return(-1);
-
- memcpy(last->next,newrace,sizeof(race));
- return(0);
-}
-
-int addnewclass(user *currentuser,class *newclass) {
- class *next;
- class *last;
-
- if(currentuser->status < ARCHWIZARD) {		/* can't do this yet */
-  display_error(currentuser->handle,NOT_YET);  
-  return;
- }
-
- next=classes;
- last=next;
-
- if(next != NULL) {
-  last=next;
-  next=next->next;
- }
-
- last->next=calloc(1,sizeof(class));		/*  add new */
- if(last->next == NULL) return(-1);
-
- memcpy(last->next,newclass,sizeof(class));
- return(0);
-}
-
 
 int setexit(user *currentuser,int whichroom,int direction,int exit) {
  CONFIG config;
@@ -981,7 +936,6 @@ int resetobjects(void) {
 
  }
 
-return;
 }
 
 int pickup(user *currentuser,char *o) {
@@ -1436,7 +1390,7 @@ int look(user *currentuser,char *n) {
 
   send(currentuser->handle,"\r\n",2,0);
 
-  for(count=0;count<currentroom->monstercount-1;count++) {
+  for(count=0;count<currentroom->monstercount;count++) {
    sprintf(buf,"a %s is here\r\n",currentroom->roommonsters[count].name);
 
    send(currentuser->handle,buf,strlen(buf),0);

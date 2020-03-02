@@ -173,7 +173,7 @@ for(count=0;count<currentroom->monstercount;count++) {
 return;
 }
 
-void loadspells(void) {
+int loadspells(void) {
 spell *spellnext;
 FILE *handle;
 char *b;
@@ -191,7 +191,7 @@ strcat(spellconf,spellsrel);
 
  handle=fopen(spellconf,"rb");
  if(handle == NULL) {                                           /* couldn't open file */
-  printf("mud: Can't open configuration file %s\n",spellconf);
+  printf("\nmud: Can't open configuration file %s\n",spellconf);
   exit(NOCONFIGFILE);
  }
 
@@ -221,7 +221,7 @@ strcat(spellconf,spellsrel);
    if(spells == NULL) {			/* first room */
     spells=calloc(1,sizeof(spell));
     if(spells == NULL) {
-     perror("mud:");
+     perror("\nmud:");
      exit(NOMEM);
     }
 
@@ -233,7 +233,7 @@ strcat(spellconf,spellsrel);
     spellnext=spellnext->next;
 
     if(spellnext == NULL) {
-     perror("mud:");
+     perror("\nmud:");
      exit(NOMEM);
     }
    }
@@ -272,10 +272,11 @@ strcat(spellconf,spellsrel);
 
   if(strcmp(ab[0],"#") == 0) continue;			
  
-  printf("mud: %d: uknown configuration option %s in %s\n",lc,ab[0],spellconf);		/* unknown configuration option */
+  printf("\nmud: %d: unknown configuration option %s in %s\n",lc,ab[0],spellconf);		/* unknown configuration option */
   errorcount++;
 }
  
 fclose(handle);
+return(errorcount);
 }
 
