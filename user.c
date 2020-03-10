@@ -28,6 +28,7 @@
 #include "defines.h"
 
 extern room *rooms;
+extern fd_set readset,currentset;
 
 user *users=NULL;
 char *banconf[BUF_SIZE];
@@ -586,6 +587,8 @@ int quit(user *currentuser) {
  sendmudmessagetoall(currentuser->room,buf);
 
  currentuser->loggedin=FALSE; /* mark as logged out */
+
+ FD_CLR(currentuser->handle,&currentset);
  close(currentuser->handle);
  return;
 

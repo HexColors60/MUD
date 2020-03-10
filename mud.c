@@ -59,12 +59,13 @@ struct {
  user *user;
 } connections[1024];
 
+fd_set readset,currentset;
+
 int main(int argc,char *argv[]) {
 int  as;
 int  ls;
 struct sockaddr_in service;
 int size;
-fd_set readset,currentset;
 int maxsocket;
 int retval;
 int count;
@@ -133,7 +134,6 @@ if(listen(ls,MAX_BACKLOG) == -1) {			/* listen on socket  */
 }
 
 FD_ZERO(&currentset);
-FD_SET(ls,&currentset);
 
 maxsocket=ls;			/* maximum socket */
 
@@ -150,12 +150,21 @@ time(&c);
 c=c+config.configsavetime;
 
 	
+/*
+ * The main event loop, this resets the object, saves the configuration information
+ * It then checks each connection in turn to see if there is data sent from the
+ * user and processes it if there is
+ */
+
 while(1) {
- time(&currenttime);
+/* check if mud needs updating */
+ 
+ time(&currenttime);		/* get time */
 
  if(currenttime > o) {		/* update objects */
   printf("mud: Updating objects\n");
-  resetobjects();
+
+  resetobjects();		/* create new objects */
 
   time(&o);			/* set times */
   o=o+config.objectresettime;
@@ -188,19 +197,26 @@ while(1) {
   c=c+config.configsavetime;
  }
 
- movemonster();
+ movemonster();		/* move a monster */
 
 /* check for data on sockets */
+
+ FD_SET(ls,&currentset);		
 
  readset=currentset;
  tv.tv_sec=5;			/* set timeout */
 
- retval=select(maxsocket+1,&readset,NULL,NULL,&tv);
+/* wait until there is data ready to be read, or it times out */
 
+ retval=select(maxsocket+1,&readset,NULL,NULL,&tv);	
+ if(retval == -1) {
+  perror("mud:");
+  exit(1);
+ }
 
 for(count=0;count <= maxsocket && retval > 0;++count) {		/* search sockets */
 	
-  if(FD_ISSET(count,&readset)) { 	/* ready to read */
+  if(FD_ISSET(count,&readset)) { 	/* there is data ready to read */
 
    	   if(count == ls) {		/* new connection */
 	     	as=accept(ls,(struct sockaddr*)NULL, NULL); 
@@ -241,17 +257,18 @@ for(count=0;count <= maxsocket && retval > 0;++count) {		/* search sockets */
 
 	 }
 	 else
-         {
+         {				/* existing connection */
+
   	  memset(connections[count].temp,0,BUF_SIZE);
 
 /* get line from connection */
 	
          if(recv(count,connections[count].temp,BUF_SIZE,0) == -1) {	/* get data */
-	  FD_CLR(count,&readset);
+	  FD_CLR(count,&currentset);
 	  break;
 	 }
 
-	 strcat(connections[count].buf,connections[count].temp);
+	 strcat(connections[count].buf,connections[count].temp);	/* add to buffer */
 
 	 b=strpbrk(connections[count].buf,"\r");		/* if at end of line */
 	 if(b != NULL) {
@@ -501,7 +518,7 @@ for(count=0;count <= maxsocket && retval > 0;++count) {		/* search sockets */
 			send(count,">",1,0);
 			/* fall through */
 
-	    case STATE_GETCOMMAND:
+	    case STATE_GETCOMMAND:		/* processing command */
            		docommand(connections[count].user,connections[count].buf);
 			connections[count].connectionstate=STATE_GETCOMMAND;	/* loop in state STATE_GETCOMMAND */
 
@@ -513,5 +530,6 @@ for(count=0;count <= maxsocket && retval > 0;++count) {		/* search sockets */
          }
   	}
       }
+ }
 }
 
