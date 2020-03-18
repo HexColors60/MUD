@@ -7,10 +7,10 @@ all:
 	$(CC) -o genpass genpass.o -lcrypt
 
 win32:
-	$(CC) -w -o mud.exe attack.c error.c password.c shutdown.c spell.c command.c getconfig.c help.c mud.c lookup.c monster.c database.c user.c string.c crypt.c -lws2_32
+	$(CC) -w -o mud.exe attack.c error.c password.c shutdown.c spell.c command.c getconfig.c help.c mud.c lookup.c monster.c database.c user.c string.c -lws2_32 -llibcrypt
 
 	$(CC) -c crypt.c genpass.c
-	$(CC) -o genpass genpass.o crypt.c
+	$(CC) -o genpass genpass.o  -llibcrypt
 clean:
 	rm mud genpass *.o
 
